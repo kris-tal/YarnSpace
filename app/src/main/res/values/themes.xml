@@ -1,9 +1,23 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.YarnSpace" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/sage_green</item>
+        <item name="colorSecondary">@color/peach</item>
+        <item name="colorTertiary">@color/lavender</item>
+
+        <item name="android:windowBackground">@color/bg_light</item>
+        <item name="colorSurface">@color/bg_light_elevated</item>
+        <item name="colorSurfaceVariant">@color/bg_light_dimmed</item>
+
+        <item name="colorOnBackground">@color/text_main_light</item>
+        <item name="colorOnSurface">@color/text_main_light</item>
     </style>
 
     <style name="Theme.YarnSpace" parent="Base.Theme.YarnSpace" />
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/bg_light</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_system_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.YarnSpace</item>
+    </style>
 </resources>
