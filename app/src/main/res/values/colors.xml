@@ -1,16 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="sage_green">#8FA88E</color>
-    <color name="peach">#D5A478</color>
-    <color name="lavender">#B19CD9</color>
-
+    <!-- light theme -->
     <color name="bg_light">#FDFBF7</color>
-    <color name="bg_light_elevated">#FFFFFF</color>
-    <color name="bg_light_dimmed">#F2EDE4</color>
-    <color name="text_main_light">#2D2D2D</color>
+    <color name="bg_dimmed">#E8E7E6</color>
+    <color name="bg_darker">#C5C4C2</color>
 
-    <color name="bg_dark">#121212</color>
-    <color name="bg_dark_elevated">#1E1E1E</color>
-    <color name="bg_dark_dimmed">#0A0A0A</color>
-    <color name="text_main_dark">#E0E0E0</color>
+    <color name="dimm_effect">#C5C4C2</color>
+
+    <color name="text_graphite">#2F2F2F</color>
+    <color name="text_gray">#666666</color>
+
+    <color name="accent_sage">#8FA88E</color>
+    <color name="accent_peach">#D5A478</color>
+    <color name="accent_lavender">#B19CD9</color>
+    <color name="accent_yellow_pink">#D9A2CC</color>
+    <color name="accent_blue">#7ABBED</color>
+
+    <color name="icon_active">#4A5568</color>
+    <color name="icon_inactive">#A0AAB5</color>
+
+    <!-- night theme -->
+    <color name="bg_night">#2C2C2C</color>
+    <color name="bg_dimmed_night">#1E1E1E</color>
+    <color name="bg_darker_night">#121212</color>
+
+    <color name="dimm_effect_night">#121212</color>
+
+    <color name="text_night">#E0E0E0</color>
+
+    <color name="accent_sage_night">#78A375</color>
+    <color name="accent_peach_night">#E58F44</color>
+    <color name="accent_lavender_night">#9D73E6</color>
+    <color name="accent_yellow_pink_night">#E667BD</color>
+    <color name="accent_blue_night">#3D9AF2</color>
+
+    <color name="icon_active_night">#E0E0E0</color>
+    <color name="icon_inactive_night">#A0AAB5</color>
 </resources>

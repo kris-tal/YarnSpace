@@ -2,20 +2,31 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.YarnSpace" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
-        <item name="colorPrimary">@color/sage_green</item>
-        <item name="colorSecondary">@color/peach</item>
-        <item name="colorTertiary">@color/lavender</item>
+        <item name="colorPrimary">@color/accent_sage_night</item>
+        <item name="colorSecondary">@color/bg_dimmed_night</item>
 
-        <item name="android:windowBackground">@color/bg_dark</item>
-        <item name="colorSurface">@color/bg_dark_elevated</item>
-        <item name="colorSurfaceVariant">@color/bg_dark_dimmed</item>
+        <item name="android:windowBackground">@color/bg_night</item>
+        <item name="android:statusBarColor">@color/bg_darker_night</item>
+        <item name="android:windowLightStatusBar">false</item>
 
-        <item name="colorOnBackground">@color/text_main_dark</item>
-        <item name="colorOnSurface">@color/text_main_dark</item>
+        <item name="colorSurface">@color/bg_dimmed_night</item>
+        <item name="colorSurfaceVariant">@color/bg_darker_night</item>
+
+        <item name="colorOnBackground">@color/text_night</item>
+        <item name="colorOnSurface">@color/text_night</item>
+        <item name="colorOnSurfaceVariant">@color/text_night</item>
+
+        <item name="colorSecondaryContainer">@color/dimm_effect_night</item>
+        <item name="colorOnSecondaryContainer">@color/icon_active_night</item>
+
+        <item name="colorControlHighlight">@color/dimm_effect_night</item>
+
     </style>
 
+    <style name="Theme.YarnSpace" parent="Base.Theme.YarnSpace" />
+
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/bg_dark</item>
+        <item name="windowSplashScreenBackground">@color/bg_night</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_system_logo</item>
         <item name="postSplashScreenTheme">@style/Theme.YarnSpace</item>
     </style>
