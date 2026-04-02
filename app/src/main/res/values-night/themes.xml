@@ -10,11 +10,11 @@
         <item name="android:windowLightStatusBar">false</item>
 
         <item name="colorSurface">@color/bg_dimmed_night</item>
-        <item name="colorSurfaceVariant">@color/bg_darker_night</item>
+        <item name="colorSurfaceVariant">@color/icon_inactive_night</item>
 
         <item name="colorOnBackground">@color/text_night</item>
-        <item name="colorOnSurface">@color/text_night</item>
-        <item name="colorOnSurfaceVariant">@color/text_night</item>
+        <item name="colorOnSurface">@color/icon_active_night</item>
+        <item name="colorOnSurfaceVariant">@color/icon_active_night</item>
 
         <item name="colorSecondaryContainer">@color/dimm_effect_night</item>
         <item name="colorOnSecondaryContainer">@color/icon_active_night</item>

@@ -9,14 +9,14 @@
         <item name="android:windowLightStatusBar">true</item>
 
         <item name="colorSurface">@color/bg_dimmed</item>
-        <item name="colorSurfaceVariant">@color/bg_darker</item>
+        <item name="colorSurfaceVariant">@color/icon_inactive</item>
 
         <item name="colorOnBackground">@color/text_graphite</item>
-        <item name="colorOnSurface">@color/text_graphite</item>
-        <item name="colorOnSurfaceVariant">@color/text_graphite</item>
+        <item name="colorOnSurface">@color/icon_active</item>
+        <item name="colorOnSurfaceVariant">@color/icon_inactive</item>
 
         <item name="colorSecondaryContainer">@color/dimm_effect</item>
-        <item name="colorOnSecondaryContainer">@color/text_graphite</item>
+        <item name="colorOnSecondaryContainer">@color/icon_active</item>
 
         <item name="colorControlHighlight">@color/dimm_effect</item>
     </style>

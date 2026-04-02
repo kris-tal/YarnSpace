@@ -16,8 +16,6 @@ class MainActivity : AppCompatActivity() {
     private fun setupBottomNavigation() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
-        loadFragment(FeedFragment())
-
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_search -> loadFragment(SearchFragment())
@@ -28,6 +26,8 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
+
+        bottomNav.selectedItemId = R.id.nav_feed
     }
 
     private fun loadFragment(fragment: Fragment) {
