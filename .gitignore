@@ -2,6 +2,7 @@
 .idea/
 *.iml
 build/
+app/build/
 capture/
 local.properties
 .gradle/
@@ -9,3 +10,15 @@ local.properties
 # System
 .DS_Store
 Thumbs.db
+
+# Backend
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+
+.env
+backend/.env
+
+.docker/
+postgres_data/
