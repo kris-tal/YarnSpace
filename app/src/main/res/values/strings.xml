@@ -27,16 +27,17 @@
     <string name="settings_night_mode">Night mode</string>
     <string name="settings_logout">Log out</string>
     <string name="settings_open">Open settings</string>
+    <string name="feed_title">Feed</string>
 
     <string name="feed_username_one">kocicaszydelkowania56</string>
     <string name="feed_username_two">wloczkowakrolowa</string>
-    <string name="feed_username_three">jola1</string>
+    <string name="feed_username_three">jola</string>
     <string name="feed_post_text_one">Nie mam siły tego kończyć . Kochani :^( Dość !</string>
     <string name="feed_post_text_two">Wysłałam poprzednią wiadomość za cześnie ! Najmocniej Przepraszam !!</string>
     <string name="feed_post_text_three">Piękny sweter w produkcji . Nie wiem jeszcze ile zajmie , ale wyl</string>
 
     <string name="profile_name">Beata</string>
-    <string name="profile_username">@kocicaszydelkowania56</string>
+    <string name="profile_username">\@kocicaszydelkowania56</string>
     <string name="profile_title">Profile</string>
     <string name="profile_tab_projects">Projects</string>
     <string name="profile_tab_posts">Posts</string>
