@@ -3,10 +3,14 @@
     <style name="Base.Theme.YarnSpace" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <item name="colorPrimary">@color/accent_sage_night</item>
+        <item name="colorOnPrimary">@color/text_on_accent_night</item>
+        <item name="colorOnPrimaryContainer">@color/text_on_accent_night</item>
+
         <item name="colorSecondary">@color/bg_dimmed_night</item>
 
         <item name="android:windowBackground">@color/bg_night</item>
         <item name="android:statusBarColor">@color/bg_darker_night</item>
+        <item name="android:navigationBarColor">@color/bg_darker_night</item>
         <item name="android:windowLightStatusBar">false</item>
 
         <item name="colorSurface">@color/bg_dimmed_night</item>

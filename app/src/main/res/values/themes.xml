@@ -2,10 +2,14 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.YarnSpace" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/accent_sage</item>
+        <item name="colorOnPrimary">@color/text_on_accent</item>
+        <item name="colorOnPrimaryContainer">@color/text_on_accent</item>
+
         <item name="colorSecondary">@color/bg_dimmed</item>
 
         <item name="android:windowBackground">@color/bg_light</item>
         <item name="android:statusBarColor">@color/bg_darker</item>
+        <item name="android:navigationBarColor">@color/bg_darker</item>
         <item name="android:windowLightStatusBar">true</item>
 
         <item name="colorSurface">@color/bg_dimmed</item>

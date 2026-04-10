@@ -5,10 +5,10 @@
     <color name="bg_dimmed">#E8E7E6</color>
     <color name="bg_darker">#C5C4C2</color>
 
-    <color name="dimm_effect">#C5C4C2</color>
+    <color name="dimm_effect">#AFAEAC</color>
 
     <color name="text_graphite">#2F2F2F</color>
-    <color name="text_gray">#666666</color>
+    <color name="text_on_accent">#2F2A27</color>
 
     <color name="accent_sage">#8FA88E</color>
     <color name="accent_peach">#D5A478</color>
@@ -20,13 +20,14 @@
     <color name="icon_inactive">#A0AAB5</color>
 
     <!-- night theme -->
-    <color name="bg_night">#2C2C2C</color>
-    <color name="bg_dimmed_night">#1E1E1E</color>
-    <color name="bg_darker_night">#121212</color>
+    <color name="bg_night">#3A3532</color>
+    <color name="bg_dimmed_night">#2F2A27</color>
+    <color name="bg_darker_night">#2C2625</color>
 
-    <color name="dimm_effect_night">#121212</color>
+    <color name="dimm_effect_night">#211C1B</color>
 
     <color name="text_night">#E0E0E0</color>
+    <color name="text_on_accent_night">#2F2A27</color>
 
     <color name="accent_sage_night">#78A375</color>
     <color name="accent_peach_night">#E58F44</color>
