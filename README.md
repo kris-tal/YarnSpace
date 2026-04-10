@@ -23,4 +23,45 @@ Social media platform for crochet enthusiasts and influencers. Users can share f
 * **Search engine** – finding creators and inspirations with a filtering system.
 
 ---
-*Detailed technical information will be added upon project completion.*
+
+## Backend tech stack
+
+- **FastAPI** (Python) – REST API.
+- **Uvicorn** – ASGI server running the FastAPI app.
+- **SQLAlchemy** – ORM for defining DB models and connecting to the database.
+- **PostgreSQL** – relational database.
+- **Docker + Docker Compose** – running backend + database locally.
+
+---
+
+## Backend + Database (development)
+
+### Requirements
+- Docker + Docker Compose
+
+### Setup
+1. Create `.env` based on `.env.example` (do not commit `.env`).
+2. Start services:
+
+```bash
+docker compose up --build
+```
+
+### Quick checks
+- API health:
+
+```bash
+curl http://localhost:8000/health
+```
+
+- API docs:
+
+```text
+http://localhost:8000/docs
+```
+
+- List tables in Postgres:
+
+```bash
+docker exec -it yarnspace_db psql -U $POSTGRES_USER -d $POSTGRES_DB -c "\\dt"
+```
