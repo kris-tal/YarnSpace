@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val STATE_SETTINGS_OPEN = "state_settings_open"
+        private const val STATE_SELECTED_NAV_ITEM = "state_selected_nav_item"
     }
 
     private lateinit var settingsController: SettingsPanelController
@@ -29,6 +30,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val isSettingsOpen = savedInstanceState?.getBoolean(STATE_SETTINGS_OPEN, false) ?: false
+        val selectedItemId = savedInstanceState?.getInt(STATE_SELECTED_NAV_ITEM) ?: R.id.nav_feed
+        val restoreNavigationState = savedInstanceState != null
         val settingsRefs = SettingsPanelRefs.from(this)
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
 
@@ -46,7 +49,10 @@ class MainActivity : AppCompatActivity() {
             onBeforeNavigate = { settingsController.closePanelIfOpen() },
             onNavigate = ::handleBottomNavigation,
         )
-        navigationController.bind(R.id.nav_feed)
+        navigationController.bind(
+            defaultItemId = selectedItemId,
+            restoreState = restoreNavigationState,
+        )
     }
 
     override fun onResume() {
@@ -57,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(STATE_SETTINGS_OPEN, settingsController.isPanelOpen())
+        outState.putInt(STATE_SELECTED_NAV_ITEM, findViewById<BottomNavigationView>(R.id.bottom_navigation).selectedItemId)
     }
 
     private fun handleBottomNavigation(itemId: Int) {

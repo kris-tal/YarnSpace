@@ -5,11 +5,13 @@ class NavigationController(
     private val onBeforeNavigate: () -> Unit,
     private val onNavigate: (Int) -> Unit,
 ) {
-    fun bind(defaultItemId: Int) {
+    fun bind(defaultItemId: Int, restoreState: Boolean = false) {
         if (bottomNavigationView.selectedItemId != defaultItemId) {
             bottomNavigationView.selectedItemId = defaultItemId
         }
-        onNavigate(defaultItemId)
+        if (!restoreState) {
+            onNavigate(defaultItemId)
+        }
 
         bottomNavigationView.setOnItemSelectedListener { item ->
             onBeforeNavigate()
