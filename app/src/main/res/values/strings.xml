@@ -4,7 +4,7 @@
     <string name="login_title">Welcome back </string>
     <string name="login_subtitle">We missed you soooo much</string>
     <string name="signin_title">Create account</string>
-    <string name="signin_subtitle">Please please please</string>
+    <string name="signin_subtitle">Please, please, please</string>
 
     <string name="hint_username">Username</string>
     <string name="hint_email_or_username">Email / username</string>
@@ -27,5 +27,27 @@
     <string name="settings_night_mode">Night mode</string>
     <string name="settings_logout">Log out</string>
     <string name="settings_open">Open settings</string>
+
+    <string name="feed_username_one">kocicaszydelkowania56</string>
+    <string name="feed_username_two">wloczkowakrolowa</string>
+    <string name="feed_username_three">jola1</string>
+    <string name="feed_post_text_one">Nie mam siły tego kończyć . Kochani :^( Dość !</string>
+    <string name="feed_post_text_two">Wysłałam poprzednią wiadomość za cześnie ! Najmocniej Przepraszam !!</string>
+    <string name="feed_post_text_three">Piękny sweter w produkcji . Nie wiem jeszcze ile zajmie , ale wyl</string>
+
+    <string name="profile_name">Beata</string>
+    <string name="profile_username">@kocicaszydelkowania56</string>
+    <string name="profile_title">Profile</string>
+    <string name="profile_tab_projects">Projects</string>
+    <string name="profile_tab_posts">Posts</string>
+    <string name="profile_tab_saved">Saved</string>
+    <string name="profile_header_username">kocicaszydelkowania56</string>
+    <string name="profile_post_text_one">Nie mam siły tego kończyć . Kochani :^( Dość !</string>
+    <string name="profile_scroll_placeholder_title">Temporary content to test scrolling</string>
+    <string name="profile_placeholder_project_card">Project card placeholder</string>
+    <string name="profile_placeholder_post_card">Post card placeholder</string>
+    <string name="profile_placeholder_saved_card">Saved item placeholder</string>
+    <string name="profile_placeholder_more_post">Another post to keep scrolling</string>
+    <string name="profile_placeholder_more_project">Another project to keep scrolling</string>
 
 </resources>
