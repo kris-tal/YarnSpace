@@ -1,0 +1,91 @@
+package com.yarnspace.app.main
+
+import android.content.res.Configuration
+import android.content.res.Resources
+import android.view.View
+import androidx.appcompat.app.AppCompatDelegate
+import com.yarnspace.app.data.session.SessionRepository
+import com.yarnspace.app.data.settings.ThemeSettingsRepository
+
+class SettingsPanelController(
+    private val refs: SettingsPanelRefs,
+    private val themeSettingsRepository: ThemeSettingsRepository,
+    private val sessionRepository: SessionRepository,
+    private val resources: Resources,
+    private val onLogout: () -> Unit,
+) {
+    fun bind(isInitiallyOpen: Boolean) {
+        val themeSettings = themeSettingsRepository.getThemeSettings()
+        val useCustomTheme = themeSettings.useCustomTheme
+        val forceNight = themeSettings.forceNightMode
+
+        refs.customThemeSwitch.isChecked = useCustomTheme
+        refs.darkModeSwitch.isChecked = if (useCustomTheme) forceNight else isSystemCurrentlyDark()
+        setDarkModeEnabled(useCustomTheme)
+        setPanelVisible(isInitiallyOpen)
+
+        refs.settingsToggleButton.setOnClickListener {
+            setPanelVisible(!isPanelOpen())
+        }
+
+        refs.customThemeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            setDarkModeEnabled(isChecked)
+            themeSettingsRepository.setUseCustomTheme(isChecked)
+
+            if (!isChecked) {
+                refs.darkModeSwitch.isChecked = isSystemCurrentlyDark()
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            } else {
+                applyCustomMode(refs.darkModeSwitch.isChecked)
+            }
+        }
+
+        refs.darkModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            if (refs.customThemeSwitch.isChecked) {
+                themeSettingsRepository.setForceDarkMode(isChecked)
+                applyCustomMode(isChecked)
+            }
+        }
+
+        refs.logoutButton.setOnClickListener {
+            sessionRepository.clearSession()
+            onLogout()
+        }
+    }
+
+    fun onResume() {
+        if (!refs.customThemeSwitch.isChecked) {
+            refs.darkModeSwitch.isChecked = isSystemCurrentlyDark()
+        }
+    }
+
+    fun closePanelIfOpen() {
+        if (isPanelOpen()) {
+            setPanelVisible(false)
+        }
+    }
+
+    fun isPanelOpen(): Boolean = refs.settingsPanel.visibility == View.VISIBLE
+
+    private fun setDarkModeEnabled(enabled: Boolean) {
+        refs.darkModeSwitch.isEnabled = enabled
+        refs.darkModeRow.alpha = if (enabled) 1f else 0.45f
+    }
+
+    private fun setPanelVisible(visible: Boolean) {
+        refs.settingsPanel.visibility = if (visible) View.VISIBLE else View.GONE
+    }
+
+    private fun applyCustomMode(darkEnabled: Boolean) {
+        AppCompatDelegate.setDefaultNightMode(
+            if (darkEnabled) AppCompatDelegate.MODE_NIGHT_YES
+            else AppCompatDelegate.MODE_NIGHT_NO,
+        )
+    }
+
+    private fun isSystemCurrentlyDark(): Boolean {
+        return (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+    }
+}
+
