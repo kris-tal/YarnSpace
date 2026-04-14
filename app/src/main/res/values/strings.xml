@@ -38,4 +38,6 @@
     <string name="profile_tab_posts">Posts</string>
     <string name="profile_tab_saved">Saved</string>
 
+    <string name="back">Back</string>
+
 </resources>

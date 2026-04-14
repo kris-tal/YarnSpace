@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -15,13 +16,28 @@
         android:paddingTop="14dp"
         android:paddingBottom="14dp">
 
+        <ImageButton
+            android:id="@+id/btnProjectDetailsBack"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/back"
+            android:layout_marginEnd="8dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="?attr/colorOnPrimary" />
+
         <TextView
             android:id="@+id/tvProjectDetailsAuthor"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:text="\@author"
             android:textColor="?attr/colorOnPrimary"
-            android:textStyle="bold"
-            android:text="\@author" />
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
