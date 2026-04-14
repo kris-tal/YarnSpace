@@ -50,4 +50,10 @@
     <string name="spec_time_to_complete">Time to complete</string>
     <string name="spec_additional_materials">Additional materials</string>
 
+    <string name="search_hint">Search</string>
+    <string name="search_username_tip">Tip: to search for a user, start with @</string>
+    <string name="search_filters_title">Project specification filters</string>
+    <string name="search_filters_placeholder">(Filters UI will be added here)</string>
+    <string name="search_empty_state">What are you looking for?</string>
+
 </resources>

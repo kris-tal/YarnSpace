@@ -15,6 +15,11 @@
         <item name="colorSurface">@color/bg_dimmed</item>
         <item name="colorSurfaceVariant">@color/icon_inactive</item>
 
+        <item name="colorSurfaceContainer">@color/bg_dimmed</item>
+        <item name="colorSurfaceContainerLow">@color/bg_dimmed</item>
+        <item name="colorSurfaceContainerHigh">@color/bg_dimmed</item>
+        <item name="colorSurfaceContainerHighest">@color/bg_dimmed</item>
+
         <item name="colorOnBackground">@color/text_graphite</item>
         <item name="colorOnSurface">@color/icon_active</item>
         <item name="colorOnSurfaceVariant">@color/icon_inactive</item>

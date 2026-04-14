@@ -6,7 +6,7 @@
         <item name="colorOnPrimary">@color/text_on_accent_night</item>
         <item name="colorOnPrimaryContainer">@color/text_on_accent_night</item>
 
-        <item name="colorSecondary">@color/bg_dimmed_night</item>
+        <item name="colorSecondary">@color/bg_darker_night</item>
 
         <item name="android:windowBackground">@color/bg_night</item>
         <item name="android:statusBarColor">@color/bg_darker_night</item>
@@ -15,7 +15,6 @@
 
         <item name="colorSurface">@color/bg_dimmed_night</item>
         <item name="colorSurfaceVariant">@color/icon_inactive_night</item>
-
         <item name="colorOnBackground">@color/text_night</item>
         <item name="colorOnSurface">@color/icon_active_night</item>
         <item name="colorOnSurfaceVariant">@color/icon_active_night</item>
