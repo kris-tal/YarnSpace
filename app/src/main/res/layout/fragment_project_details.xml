@@ -34,38 +34,213 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
-            android:text="\@author"
+            android:text=""
             android:textColor="?attr/colorOnPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
     </LinearLayout>
 
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
 
-        <TextView
-            android:id="@+id/tvProjectDetailsTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="?attr/colorOnBackground"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:text="Title" />
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvProjectDetailsContent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:textColor="?attr/colorOnBackground"
-            android:textSize="16sp"
-            android:text="Content" />
+            <TextView
+                android:id="@+id/tvProjectDetailsTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:text="@string/project_details_title_placeholder" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/tvProjectDetailsContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="16sp"
+                android:text="@string/project_details_content_placeholder" />
+
+            <ImageView
+                android:id="@+id/ivProjectDetailsImage"
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_marginTop="16dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                android:visibility="gone"
+                android:src="@android:drawable/ic_menu_gallery" />
+
+            <TextView
+                android:id="@+id/tvProjectDetailsSpecTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:text="@string/project_details_spec_title" />
+
+            <LinearLayout
+                android:id="@+id/layoutProjectDetailsSpecTable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.45"
+                        android:textColor="?attr/colorOnBackground"
+                        android:textStyle="bold"
+                        android:text="@string/spec_hook_size" />
+
+                    <TextView
+                        android:id="@+id/tvSpecHookSizeValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.55"
+                        android:textColor="?attr/colorOnBackground"
+                        android:text="" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.45"
+                        android:textColor="?attr/colorOnBackground"
+                        android:textStyle="bold"
+                        android:text="@string/spec_pattern" />
+
+                    <TextView
+                        android:id="@+id/tvSpecPatternValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.55"
+                        android:textColor="?attr/colorOnBackground"
+                        android:text="" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.45"
+                        android:textColor="?attr/colorOnBackground"
+                        android:textStyle="bold"
+                        android:text="@string/spec_yarn_type" />
+
+                    <TextView
+                        android:id="@+id/tvSpecYarnTypeValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.55"
+                        android:textColor="?attr/colorOnBackground"
+                        android:text="" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.45"
+                        android:textColor="?attr/colorOnBackground"
+                        android:textStyle="bold"
+                        android:text="@string/spec_yarn_amount" />
+
+                    <TextView
+                        android:id="@+id/tvSpecYarnAmountValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.55"
+                        android:textColor="?attr/colorOnBackground"
+                        android:text="" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.45"
+                        android:textColor="?attr/colorOnBackground"
+                        android:textStyle="bold"
+                        android:text="@string/spec_time_to_complete" />
+
+                    <TextView
+                        android:id="@+id/tvSpecTimeToCompleteValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.55"
+                        android:textColor="?attr/colorOnBackground"
+                        android:text="" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="8dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.45"
+                        android:textColor="?attr/colorOnBackground"
+                        android:textStyle="bold"
+                        android:text="@string/spec_additional_materials" />
+
+                    <TextView
+                        android:id="@+id/tvSpecAdditionalMaterialsValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.55"
+                        android:textColor="?attr/colorOnBackground"
+                        android:text="" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>
 

@@ -40,4 +40,14 @@
 
     <string name="back">Back</string>
 
+    <string name="project_details_title_placeholder">Title</string>
+    <string name="project_details_content_placeholder">Content</string>
+    <string name="project_details_spec_title">Specification</string>
+    <string name="spec_hook_size">Hook size</string>
+    <string name="spec_pattern">Pattern</string>
+    <string name="spec_yarn_type">Yarn type</string>
+    <string name="spec_yarn_amount">Yarn amount</string>
+    <string name="spec_time_to_complete">Time to complete</string>
+    <string name="spec_additional_materials">Additional materials</string>
+
 </resources>
