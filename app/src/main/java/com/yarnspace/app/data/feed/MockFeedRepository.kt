@@ -10,16 +10,19 @@ class MockFeedRepository : FeedRepository {
             id = 1,
             username = "kocicaszydelkowania56",
             displayName = "Beata",
+            avatarResId = android.R.drawable.ic_menu_gallery
         )
         val user2 = UserSummary(
             id = 2,
             username = "wloczkowakrolowa",
             displayName = "Kasia",
+            avatarResId = android.R.drawable.ic_menu_camera
         )
         val user3 = UserSummary(
             id = 3,
             username = "jola",
             displayName = "Jola",
+            avatarResId = android.R.drawable.ic_menu_edit
         )
 
         val items: List<FeedItem> = listOf(
@@ -62,4 +65,3 @@ class MockFeedRepository : FeedRepository {
         return items.sortedByDescending { (it as FeedItem.Base).createdAt }
     }
 }
-

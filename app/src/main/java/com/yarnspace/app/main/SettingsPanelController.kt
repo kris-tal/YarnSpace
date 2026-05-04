@@ -1,13 +1,20 @@
 package com.yarnspace.app.main
 
+import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.lifecycle.lifecycleScope
+import com.yarnspace.app.data.TokenManager
 import com.yarnspace.app.data.session.SessionRepository
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
+import com.yarnspace.app.retrofit.RetrofitClient
+import kotlinx.coroutines.launch
 
 class SettingsPanelController(
+    private val context: Context,
     private val refs: SettingsPanelRefs,
     private val themeSettingsRepository: ThemeSettingsRepository,
     private val sessionRepository: SessionRepository,
@@ -48,8 +55,21 @@ class SettingsPanelController(
         }
 
         refs.logoutButton.setOnClickListener {
-            sessionRepository.clearSession()
-            onLogout()
+            (context as? AppCompatActivity)?.lifecycleScope?.launch {
+                try {
+                    RetrofitClient.getInstance(context).logout()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                } finally {
+                    TokenManager.clearToken(context)
+                    sessionRepository.clearSession()
+                    onLogout()
+                }
+            } ?: run {
+                TokenManager.clearToken(context)
+                sessionRepository.clearSession()
+                onLogout()
+            }
         }
     }
 
@@ -88,4 +108,3 @@ class SettingsPanelController(
             Configuration.UI_MODE_NIGHT_YES
     }
 }
-

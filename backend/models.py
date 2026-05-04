@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, func
+from sqlalchemy.orm import relationship
 from db import Base
 
 class User(Base):
@@ -8,7 +9,32 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(120), unique=True, nullable=False, index=True)
     nick = Column(String(50), nullable=False)
-    theme = Column(String(50), nullable=False, default="light")
+    accent_color = Column(String(50), nullable=False, default="sage")
+    avatar_url = Column(String(500), nullable=True)
+
+    password_hash = Column(String(255), nullable=False)
+
+    posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="author", cascade="all, delete-orphan")
+
+    following_links = relationship(
+        "Follow",
+        foreign_keys="Follow.follower_id",
+        back_populates="follower",
+        cascade="all, delete-orphan",
+    )
+    follower_links = relationship(
+        "Follow",
+        foreign_keys="Follow.followee_id",
+        back_populates="followee",
+        cascade="all, delete-orphan",
+    )
+
+    saved_project_links = relationship(
+        "SavedProject",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 class Post(Base):
     __tablename__ = "posts"
@@ -18,6 +44,8 @@ class Post(Base):
     content = Column(Text, nullable=False)
     image_url = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    author = relationship("User", back_populates="posts")
 
 class Project(Base):
     __tablename__ = "projects"
@@ -36,3 +64,33 @@ class Project(Base):
     additional_materials = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    author = relationship("User", back_populates="projects")
+    saved_by_links = relationship(
+        "SavedProject",
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+
+
+class Follow(Base):
+    __tablename__ = "follows"
+
+    follower_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    followee_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    follower = relationship("User", foreign_keys=[follower_id], back_populates="following_links")
+    followee = relationship("User", foreign_keys=[followee_id], back_populates="follower_links")
+
+
+class SavedProject(Base):
+    __tablename__ = "saved_projects"
+
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), primary_key=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    user = relationship("User", back_populates="saved_project_links")
+    project = relationship("Project", back_populates="saved_by_links")
+

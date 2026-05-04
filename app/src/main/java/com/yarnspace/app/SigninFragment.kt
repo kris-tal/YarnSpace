@@ -7,8 +7,13 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.yarnspace.app.data.RegisterRequest
+import com.yarnspace.app.data.TokenManager
+import com.yarnspace.app.retrofit.RetrofitClient
+import kotlinx.coroutines.launch
 
 class SigninFragment : Fragment(R.layout.fragment_signin) {
 
@@ -35,22 +40,43 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
                 !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                     Snackbar.make(view, getString(R.string.error_invalid_email), Snackbar.LENGTH_SHORT).show()
                 }
-//                password.length < 2 -> {
-//                    Snackbar.make(view, getString(R.string.error_password_length), Snackbar.LENGTH_SHORT).show()
-//                }
+                password.length < 6 -> { // Backend expects min 6 as per schemas.py
+                    Snackbar.make(view, getString(R.string.error_password_length), Snackbar.LENGTH_SHORT).show()
+                }
                 password != confirm -> {
                     Snackbar.make(view, getString(R.string.error_passwords_not_match), Snackbar.LENGTH_SHORT).show()
                 }
                 else -> {
-                    // TODO: backend signup call
-                    startActivity(Intent(requireContext(), MainActivity::class.java))
-                    requireActivity().finish()
+                    registerUser(view, username, email, password)
                 }
             }
         }
 
         goToLogin.setOnClickListener {
             parentFragmentManager.popBackStack()
+        }
+    }
+
+    private fun registerUser(view: View, username: String, email: String, pass: String) {
+        lifecycleScope.launch {
+            try {
+                val request = RegisterRequest(
+                    username = username,
+                    email = email,
+                    nick = username,
+                    password = pass
+                )
+                val apiService = RetrofitClient.getInstance(requireContext())
+                val response = apiService.register(request)
+                
+                TokenManager.saveToken(requireContext(), response.accessToken)
+                
+                startActivity(Intent(requireContext(), MainActivity::class.java))
+                requireActivity().finish()
+            } catch (e: Exception) {
+                val message = "Registration failed: ${e.localizedMessage ?: "Unknown error"}"
+                Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 }

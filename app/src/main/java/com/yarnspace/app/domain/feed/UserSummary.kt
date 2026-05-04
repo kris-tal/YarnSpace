@@ -4,6 +4,6 @@ data class UserSummary(
     val id: Long,
     val username: String,
     val displayName: String,
-    val avatarResId: Int? = null, //to potem bedzi url
+    val avatarUrl: String? = null,
+    val avatarResId: Int? = null,
 )
-

@@ -2,12 +2,16 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from db import engine, Base
 import models
+from routers import auth, users
 
 app = FastAPI(
     title="YarnSpace API",
     description="Backend for YarnSpace",
     version="1.0.0"
 )
+
+app.include_router(auth.router)
+app.include_router(users.router)
 
 @app.on_event("startup")
 def startup_event():

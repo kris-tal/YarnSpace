@@ -9,6 +9,7 @@ object MockProfileRepository {
         id = 1L,
         username = "kocicaszydelkowania56",
         displayName = "Beata",
+        avatarResId = android.R.drawable.ic_menu_gallery
     )
 
     fun getMyPosts(now: Long = System.currentTimeMillis()): List<FeedItem> {
@@ -57,4 +58,3 @@ object MockProfileRepository {
         return items.sortedByDescending { (it as FeedItem.Base).createdAt }
     }
 }
-

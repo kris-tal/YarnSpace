@@ -38,6 +38,7 @@ class FeedAdapter(private val onProjectClick: (FeedItem.Project) -> Unit) : List
         private val onProjectClick: (FeedItem.Project) -> Unit,
     ) : RecyclerView.ViewHolder(itemView) {
 
+        private val ivAvatar: ImageView = itemView.findViewById(R.id.ivFeedItemAvatar)
         private val tvType: TextView = itemView.findViewById(R.id.tvFeedItemType)
         private val tvAuthor: TextView = itemView.findViewById(R.id.tvFeedItemAuthor)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvFeedItemTitle)
@@ -47,6 +48,12 @@ class FeedAdapter(private val onProjectClick: (FeedItem.Project) -> Unit) : List
         fun bind(item: FeedItem) {
             val base = item as? FeedItem.Base
             tvAuthor.text = if (base != null) "@${base.author.username}" else ""
+
+            if (base != null) {
+                val avatarRes = base.author.avatarResId ?: R.drawable.ic_default_avatar
+                ivAvatar.setImageResource(avatarRes)
+                // glide later
+            }
 
             when (item) {
                 is FeedItem.Post -> {
@@ -85,5 +92,3 @@ class FeedAdapter(private val onProjectClick: (FeedItem.Project) -> Unit) : List
         }
     }
 }
-
-

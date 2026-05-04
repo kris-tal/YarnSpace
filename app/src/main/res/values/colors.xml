@@ -13,7 +13,8 @@
     <color name="accent_sage">#8FA88E</color>
     <color name="accent_peach">#D5A478</color>
     <color name="accent_lavender">#B19CD9</color>
-    <color name="accent_yellow_pink">#D9A2CC</color>
+    <color name="accent_yellow">#E9C46A</color>
+    <color name="accent_pink">#D9A2CC</color>
     <color name="accent_blue">#7ABBED</color>
 
     <color name="icon_active">#4A5568</color>
@@ -32,7 +33,8 @@
     <color name="accent_sage_night">#78A375</color>
     <color name="accent_peach_night">#E58F44</color>
     <color name="accent_lavender_night">#9D73E6</color>
-    <color name="accent_yellow_pink_night">#E667BD</color>
+    <color name="accent_yellow_night">#E9C46A</color>
+    <color name="accent_pink_night">#E667BD</color>
     <color name="accent_blue_night">#3D9AF2</color>
 
     <color name="icon_active_night">#E0E0E0</color>

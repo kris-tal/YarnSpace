@@ -16,12 +16,24 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
             android:background="?attr/colorPrimary"
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp">
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivFeedItemAvatar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginEnd="12dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                android:src="@drawable/ic_default_avatar"
+                app:strokeColor="?attr/colorOnPrimary"
+                app:strokeWidth="1dp" />
 
             <TextView
                 android:id="@+id/tvFeedItemAuthor"
@@ -81,4 +93,3 @@
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
-

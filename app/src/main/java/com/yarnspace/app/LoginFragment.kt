@@ -6,8 +6,14 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import com.yarnspace.app.data.TokenManager
+import com.yarnspace.app.retrofit.RetrofitClient
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.lang.Exception
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
@@ -27,9 +33,24 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 identifier.isBlank() || password.isBlank() ->
                     Snackbar.make(view, getString(R.string.error_fill_all_fields), Snackbar.LENGTH_SHORT).show()
                 else -> {
-                    // TODO: backend login call
-                    startActivity(Intent(requireContext(), MainActivity::class.java))
-                    requireActivity().finish()
+                    lifecycleScope.launch {
+                        try {
+                            val apiService = RetrofitClient.getInstance(requireContext())
+                            val authResponse = apiService.login(identifier, password)
+                            TokenManager.saveToken(requireContext(), authResponse.accessToken)
+                            startActivity(Intent(requireContext(), MainActivity::class.java))
+                            requireActivity().finish()
+                        } catch (e: Exception) {
+                            val message = when (e) {
+                                is HttpException -> {
+                                    if (e.code() == 401) "Invalid credentials"
+                                    else "Login failed: ${e.message()}"
+                                }
+                                else -> "Login failed: ${e.message}"
+                            }
+                            Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
+                        }
+                    }
                 }
             }
         }

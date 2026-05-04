@@ -44,30 +44,24 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <FrameLayout
-                android:id="@+id/profile_avatar"
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivProfileAvatar"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:elevation="4dp"
+                android:padding="2dp"
                 android:background="@drawable/bg_circle_avatar"
-                android:elevation="2dp"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                android:src="@drawable/ic_default_avatar"
+                app:strokeColor="?attr/colorOnSurface"
+                app:strokeWidth="2dp"
                 app:layout_constraintBottom_toBottomOf="@id/profile_avatar_center_guide"
                 app:layout_constraintDimensionRatio="1:1"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.498"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/profile_avatar_center_guide"
-                app:layout_constraintVertical_bias="0.411"
-                app:layout_constraintWidth_percent="0.33">
-
-                <ImageView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:adjustViewBounds="true"
-                    android:alpha="0.5"
-                    android:contentDescription="@null"
-                    android:scaleType="centerCrop"
-                    android:src="@android:drawable/sym_def_app_icon" />
-            </FrameLayout>
+                app:layout_constraintWidth_percent="0.33" />
 
             <TextView
                 android:id="@+id/profile_username_text"
@@ -93,7 +87,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.5"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/profile_avatar" />
+                app:layout_constraintTop_toBottomOf="@+id/ivProfileAvatar" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -156,4 +150,3 @@
     </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-
