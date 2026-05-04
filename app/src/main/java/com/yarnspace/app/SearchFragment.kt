@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.search.SearchView
@@ -18,6 +19,7 @@ import com.yarnspace.app.data.user.RemoteUserRepository
 import com.yarnspace.app.retrofit.RetrofitClient
 import com.yarnspace.app.ui.search.SearchViewModel
 import com.yarnspace.app.ui.search.UserSearchAdapter
+import kotlinx.coroutines.launch
 
 class SearchFragment : Fragment() {
 
@@ -33,6 +35,7 @@ class SearchFragment : Fragment() {
     }
 
     private lateinit var adapter: UserSearchAdapter
+    private var myUsername: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -48,8 +51,27 @@ class SearchFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.searchResultsRecycler)
         val emptyStateText = view.findViewById<TextView>(R.id.searchEmptyState)
 
+        lifecycleScope.launch {
+            myUsername = try {
+                val apiService = RetrofitClient.getInstance(requireContext())
+                apiService.getMe().username
+            } catch (_: Exception) {
+                null
+            }
+        }
+
         adapter = UserSearchAdapter { user ->
-            // TODO: navigate to user profile
+            val fragment = if (!myUsername.isNullOrBlank() && user.username == myUsername) {
+                ProfileFragment.newMeInstance(prefill = user)
+            } else {
+                ProfileFragment.newPublicInstance(user)
+            }
+
+            searchView.hide()
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.main_container, fragment)
+                .addToBackStack(null)
+                .commit()
         }
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())

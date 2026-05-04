@@ -38,6 +38,18 @@
     <string name="profile_tab_posts">Posts</string>
     <string name="profile_tab_saved">Saved</string>
 
+    <string name="profile_edit">Edit</string>
+    <string name="profile_edit_coming_soon">Not implemented yet</string>
+
+    <string name="profile_follow">Follow</string>
+    <string name="profile_unfollow">Unfollow</string>
+
+    <string name="profile_followers">Followers</string>
+    <string name="profile_following">Following</string>
+    <string name="profile_posts">Posts</string>
+    <string name="profile_projects">Projects</string>
+    <string name="profile_saved">Saved</string>
+
     <string name="back">Back</string>
 
     <string name="project_details_title_placeholder">Title</string>

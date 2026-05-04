@@ -2,13 +2,18 @@ package com.yarnspace.app.retrofit
 
 import com.yarnspace.app.data.AuthResponse
 import com.yarnspace.app.data.RegisterRequest
+import com.yarnspace.app.data.remote.dto.PostReadDto
+import com.yarnspace.app.data.remote.dto.ProfilePublicDto
+import com.yarnspace.app.data.remote.dto.ProjectReadDto
 import com.yarnspace.app.data.remote.dto.UserPublicDto
 import com.yarnspace.app.data.remote.dto.UserPrivateDto
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -30,4 +35,33 @@ interface ApiService {
 
     @GET("users/search")
     suspend fun searchUsers(@Query("q") query: String): List<UserPublicDto>
+
+    @GET("users/{username}")
+    suspend fun getPublicProfile(@Path("username") username: String): ProfilePublicDto
+
+    @GET("users/{username}/posts")
+    suspend fun listUserPosts(
+        @Path("username") username: String,
+        @Query("limit") limit: Int = 20,
+        @Query("offset") offset: Int = 0,
+    ): List<PostReadDto>
+
+    @GET("users/{username}/projects")
+    suspend fun listUserProjects(
+        @Path("username") username: String,
+        @Query("limit") limit: Int = 20,
+        @Query("offset") offset: Int = 0,
+    ): List<ProjectReadDto>
+
+    @GET("users/me/saved-projects")
+    suspend fun listMySavedProjects(
+        @Query("limit") limit: Int = 20,
+        @Query("offset") offset: Int = 0,
+    ): List<ProjectReadDto>
+
+    @POST("users/{username}/follow")
+    suspend fun followUser(@Path("username") username: String): Map<String, String>
+
+    @DELETE("users/{username}/follow")
+    suspend fun unfollowUser(@Path("username") username: String): Map<String, String>
 }
