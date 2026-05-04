@@ -2,8 +2,10 @@ package com.yarnspace.app.retrofit
 
 import com.yarnspace.app.data.AuthResponse
 import com.yarnspace.app.data.RegisterRequest
+import com.yarnspace.app.data.remote.dto.PostCreateDto
 import com.yarnspace.app.data.remote.dto.PostReadDto
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
+import com.yarnspace.app.data.remote.dto.ProjectCreateDto
 import com.yarnspace.app.data.remote.dto.ProjectReadDto
 import com.yarnspace.app.data.remote.dto.UserPublicDto
 import com.yarnspace.app.data.remote.dto.UserPrivateDto
@@ -64,4 +66,10 @@ interface ApiService {
 
     @DELETE("users/{username}/follow")
     suspend fun unfollowUser(@Path("username") username: String): Map<String, String>
+
+    @POST("posts/")
+    suspend fun createPost(@Body payload: PostCreateDto): PostReadDto
+
+    @POST("projects/")
+    suspend fun createProject(@Body payload: ProjectCreateDto): ProjectReadDto
 }

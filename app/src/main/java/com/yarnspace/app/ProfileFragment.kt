@@ -1,5 +1,6 @@
 package com.yarnspace.app
 
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,7 +11,9 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.yarnspace.app.data.remote.dto.PostReadDto
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
@@ -94,9 +97,9 @@ class ProfileFragment : Fragment() {
         val btnEdit = view.findViewById<ImageButton>(R.id.btnProfileEdit)
         val btnFollow = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnProfileFollow)
         val toggleGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.profileToggleGroup)
-        val btnProjects = view.findViewById<View>(R.id.profile_filter_projects)
-        val btnPosts = view.findViewById<View>(R.id.profile_filter_posts)
-        val btnSaved = view.findViewById<View>(R.id.profile_filter_saved)
+        val btnProjects = view.findViewById<MaterialButton>(R.id.profile_filter_projects)
+        val btnPosts = view.findViewById<MaterialButton>(R.id.profile_filter_posts)
+        val btnSaved = view.findViewById<MaterialButton>(R.id.profile_filter_saved)
 
         val tvFollowersCount = view.findViewById<TextView>(R.id.tvFollowersCount)
         val tvFollowingCount = view.findViewById<TextView>(R.id.tvFollowingCount)
@@ -135,6 +138,37 @@ class ProfileFragment : Fragment() {
 
         view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter
 
+        fun dpToPx(dp: Int): Int {
+            return (dp * resources.displayMetrics.density).toInt()
+        }
+
+        fun styleTabButton(button: MaterialButton, selected: Boolean) {
+            val primary = MaterialColors.getColor(button, com.google.android.material.R.attr.colorPrimary)
+            val onPrimary = MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnPrimary)
+            val surface = MaterialColors.getColor(button, com.google.android.material.R.attr.colorSurface)
+            val onSurface = MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnSurface)
+
+            if (selected) {
+                button.backgroundTintList = ColorStateList.valueOf(primary)
+                button.setTextColor(onPrimary)
+                button.strokeWidth = 0
+            } else {
+                button.backgroundTintList = ColorStateList.valueOf(surface)
+                button.setTextColor(onSurface)
+                button.strokeColor = ColorStateList.valueOf(primary)
+                button.strokeWidth = dpToPx(1)
+            }
+        }
+
+        fun applyTabStyles() {
+            val checkedId = toggleGroup.checkedButtonId
+            styleTabButton(btnPosts, selected = checkedId == R.id.profile_filter_posts)
+            styleTabButton(btnProjects, selected = checkedId == R.id.profile_filter_projects)
+
+            // Saved tab exists only in ME mode; if hidden, styling doesn't matter.
+            styleTabButton(btnSaved, selected = checkedId == R.id.profile_filter_saved)
+        }
+
         fun currentTab(): Tab {
             return when (toggleGroup.checkedButtonId) {
                 R.id.profile_filter_projects -> Tab.PROJECTS
@@ -169,6 +203,8 @@ class ProfileFragment : Fragment() {
                     }
                 }
             }
+
+            applyTabStyles()
         }
 
         fun updateCounts(profile: ProfilePublicDto) {
@@ -215,7 +251,11 @@ class ProfileFragment : Fragment() {
                 R.id.profile_filter_projects -> loadTab(Tab.PROJECTS)
                 R.id.profile_filter_saved -> if (profileMode == ProfileMode.ME) loadTab(Tab.SAVED)
             }
+
+            applyTabStyles()
         }
+
+        applyTabStyles()
 
         btnFollow.setOnClickListener {
             val username = viewingUsername ?: return@setOnClickListener

@@ -69,4 +69,33 @@
     <string name="search_empty_state">What are you looking for?</string>
     <string name="search_no_results">No users found for \"%1$s\"</string>
 
+    <string name="add_title">Add</string>
+    <string name="add_tab_post">Post</string>
+    <string name="add_tab_project">Project</string>
+
+    <string name="add_mode_post">Adding a post</string>
+    <string name="add_mode_project">Adding a project</string>
+
+    <string name="add_hint_post_content">What is on your hook?</string>
+    <string name="add_hint_project_title">Title</string>
+    <string name="add_hint_project_content_optional">Description (optional)</string>
+
+    <string name="add_action_add_image">Add image (coming soon)</string>
+    <string name="add_image_not_selected">No image selected</string>
+
+    <string name="add_action_publish_post">Publish post</string>
+    <string name="add_action_publish_project">Publish project</string>
+
+    <string name="add_error_post_content_required">Post content cannot be empty.</string>
+    <string name="add_error_project_title_required">Project title cannot be empty.</string>
+    <string name="add_error_project_image_required">Project image is required.</string>
+
+    <string name="add_success_post_published">Post published.</string>
+    <string name="add_success_project_published">Project published.</string>
+
+    <string name="add_discard_changes_title">Discard changes?</string>
+    <string name="add_discard_changes_message">You have unsaved changes. If you switch tabs, they will be lost.</string>
+    <string name="add_discard_changes_action_discard">Discard</string>
+    <string name="add_discard_changes_action_cancel">Cancel</string>
+
 </resources>
