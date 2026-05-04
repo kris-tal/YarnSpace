@@ -21,6 +21,7 @@
     <string name="error_invalid_email">Please enter a valid email.</string>
     <string name="error_password_length">Password must be at least 6 characters.</string>
     <string name="error_passwords_not_match">Passwords do not match.</string>
+    <string name="error_loading_profile">Error loading profile</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_use_custom_theme">Use custom theme</string>
@@ -32,8 +33,7 @@
     <string name="feed_item_type_post">Post</string>
     <string name="feed_item_type_project">Project</string>
 
-    <string name="profile_name">Beata</string>
-    <string name="profile_username">\@kocicaszydelkowania56</string>
+    <string name="username_format">\@%1$s</string>
     <string name="profile_tab_projects">Projects</string>
     <string name="profile_tab_posts">Posts</string>
     <string name="profile_tab_saved">Saved</string>
@@ -55,5 +55,6 @@
     <string name="search_filters_title">Project specification filters</string>
     <string name="search_filters_placeholder">(Filters UI will be added here)</string>
     <string name="search_empty_state">What are you looking for?</string>
+    <string name="search_no_results">No users found for \"%1$s\"</string>
 
 </resources>

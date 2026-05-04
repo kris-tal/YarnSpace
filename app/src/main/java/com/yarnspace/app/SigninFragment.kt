@@ -63,7 +63,7 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
                 val request = RegisterRequest(
                     username = username,
                     email = email,
-                    nick = username,
+                    displayName = username,
                     password = pass
                 )
                 val apiService = RetrofitClient.getInstance(requireContext())

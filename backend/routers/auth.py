@@ -22,7 +22,7 @@ def register(payload: UserRegisterDTO, db: DbDep):
         db,
         username=payload.username,
         email=payload.email,
-        nick=payload.nick,
+        display_name=payload.display_name,
         accent_color=payload.accentColor,
         password_hash=hash_password(payload.password),
         avatar_url=payload.avatarUrl,

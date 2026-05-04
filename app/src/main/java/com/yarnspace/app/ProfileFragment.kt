@@ -25,7 +25,7 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val tvNick = view.findViewById<TextView>(R.id.profile_nick)
+        val tvDisplayName = view.findViewById<TextView>(R.id.profile_display_name)
         val tvUsername = view.findViewById<TextView>(R.id.profile_username_text)
         val ivAvatar = view.findViewById<ImageView>(R.id.ivProfileAvatar)
 
@@ -34,8 +34,8 @@ class ProfileFragment : Fragment() {
                 val apiService = RetrofitClient.getInstance(requireContext())
                 val user = apiService.getMe()
                 
-                tvNick.text = user.nick
-                tvUsername.text = "@${user.username}"
+                tvDisplayName.text = user.displayName
+                tvUsername.text = getString(R.string.username_format, user.username)
 
                 // if avatarUrl null => keep default
                 if (user.avatarUrl == null) {
@@ -44,8 +44,8 @@ class ProfileFragment : Fragment() {
                     // when i make editing possible i'll use glide for this probably
                     ivAvatar.setImageResource(R.drawable.ic_default_avatar)
                 }
-            } catch (e: Exception) {
-                tvNick.text = "Error loading profile"
+            } catch (_: Exception) {
+                tvDisplayName.text = getString(R.string.error_loading_profile)
             }
         }
 

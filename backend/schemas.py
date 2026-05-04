@@ -21,7 +21,7 @@ class ORMBaseModel(BaseModel):
 class UserCreateDTO(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: str = Field(max_length=120)
-    nick: str = Field(min_length=1, max_length=50)
+    display_name: str = Field(min_length=1, max_length=50, validation_alias=AliasChoices("displayName", "display_name"), serialization_alias="displayName")
     accentColor: str = Field(default="sage", validation_alias=AliasChoices("accent_color", "accentColor"))
     avatarUrl: Optional[str] = Field(default=None, validation_alias=AliasChoices("avatar_url", "avatarUrl"))
 
@@ -33,7 +33,7 @@ class UserRegisterDTO(UserCreateDTO):
 class UserPublicDTO(ORMBaseModel):
     id: int
     username: str
-    nick: str
+    display_name: str = Field(validation_alias=AliasChoices("display_name", "displayName"), serialization_alias="displayName")
     accentColor: str = Field(validation_alias=AliasChoices("accent_color", "accentColor"))
     avatarUrl: Optional[str] = Field(default=None, validation_alias=AliasChoices("avatar_url", "avatarUrl"))
 
@@ -52,36 +52,6 @@ class ProfilePublicDTO(UserPublicDTO):
 
 
 # ===========================================================
-#                   FEED AUTHOR SUMMMARY
-# ===========================================================
-
-class AuthorDTO(ORMBaseModel):
-    id: int
-    username: str
-    displayName: str = Field(validation_alias=AliasChoices("nick", "displayName"))
-    accentColor: str = Field(validation_alias=AliasChoices("accent_color", "accentColor"))
-    avatarUrl: Optional[str] = Field(default=None, validation_alias=AliasChoices("avatar_url", "avatarUrl"))
-
-
-class AuthLoginDTO(BaseModel):
-    identifier: str
-    password: str
-
-
-class TokenDTO(BaseModel):
-    accessToken: str
-    tokenType: str = "bearer"
-
-
-class AuthResponseDTO(TokenDTO):
-    user: UserPublicDTO
-
-
-class AccentColorUpdateDTO(BaseModel):
-    accentColor: str
-
-
-# ===========================================================
 #                          POSTS
 # ===========================================================
 
@@ -93,7 +63,7 @@ class PostCreateDTO(BaseModel):
 class PostReadDTO(ORMBaseModel):
     id: int
     authorId: int = Field(validation_alias=AliasChoices("author_id", "authorId"))
-    author: AuthorDTO
+    author: UserPublicDTO
     content: str
     imageUrl: Optional[str] = Field(default=None, validation_alias=AliasChoices("image_url", "imageUrl"))
     createdAt: int = Field(validation_alias=AliasChoices("created_at", "createdAt"))
@@ -126,7 +96,7 @@ class ProjectCreateDTO(BaseModel):
 class ProjectReadDTO(ORMBaseModel):
     id: int
     authorId: int = Field(validation_alias=AliasChoices("author_id", "authorId"))
-    author: AuthorDTO
+    author: UserPublicDTO
 
     title: str
     imageUrl: str = Field(validation_alias=AliasChoices("image_url", "imageUrl"))
@@ -149,3 +119,25 @@ class ProjectReadDTO(ORMBaseModel):
         if isinstance(v, datetime):
             return _datetime_to_millis(v)
         return v
+
+
+# ===========================================================
+#                           AUTH
+# ===========================================================
+
+class AuthLoginDTO(BaseModel):
+    identifier: str
+    password: str
+
+
+class TokenDTO(BaseModel):
+    accessToken: str
+    tokenType: str = "bearer"
+
+
+class AuthResponseDTO(TokenDTO):
+    user: UserPublicDTO
+
+
+class AccentColorUpdateDTO(BaseModel):
+    accentColor: str

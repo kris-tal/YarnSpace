@@ -21,7 +21,7 @@ def create_user(
     *,
     username: str,
     email: str,
-    nick: str,
+    display_name: str,
     accent_color: str,
     password_hash: str,
     avatar_url: Optional[str] = None
@@ -30,7 +30,7 @@ def create_user(
     user = models.User(
         username=username,
         email=email,
-        nick=nick,
+        display_name=display_name,
         accent_color=accent_color,
         password_hash=password_hash,
         avatar_url=avatar_url,
@@ -49,7 +49,7 @@ def create_user(
 
 def get_user_by_id(db: Session, user_id: int) -> models.User:
     user = db.get(models.User, user_id)
-    if not user:
+    if student := not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
@@ -94,6 +94,17 @@ def authenticate_user(db: Session, *, identifier: str, password: str) -> models.
             detail="Invalid credentials"
         )
     return user
+
+
+def search_users(db: Session, query: str, limit: int = 20) -> List[models.User]:
+    stmt = (
+        select(models.User)
+        .where(models.User.username.ilike(f"{query}%"))
+        .order_by(models.User.username.asc())
+        .limit(limit)
+    )
+    return list(db.execute(stmt).scalars().all())
+
 
 # idk if i'll need this actually
 def get_profile_counts(db: Session, user_id: int) -> dict:

@@ -8,7 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
     email = Column(String(120), unique=True, nullable=False, index=True)
-    nick = Column(String(50), nullable=False)
+    display_name = Column(String(50), nullable=False)
     accent_color = Column(String(50), nullable=False, default="sage")
     avatar_url = Column(String(500), nullable=True)
 

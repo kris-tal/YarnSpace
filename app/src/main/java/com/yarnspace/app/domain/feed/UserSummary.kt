@@ -6,4 +6,5 @@ data class UserSummary(
     val displayName: String,
     val avatarUrl: String? = null,
     val avatarResId: Int? = null,
+    val accentColor: String? = null
 )

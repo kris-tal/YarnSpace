@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 import crud
 from db import get_db
 from deps import get_current_user_id, get_optional_user_id
-from schemas import AccentColorUpdateDTO, UserPrivateDTO, ProfilePublicDTO, PostReadDTO, ProjectReadDTO
+from schemas import AccentColorUpdateDTO, UserPrivateDTO, ProfilePublicDTO, PostReadDTO, ProjectReadDTO, UserPublicDTO
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -37,6 +37,15 @@ def update_my_accent_color(
     return user
 
 
+@router.get("/search", response_model=List[UserPublicDTO])
+def search_users(
+    db: DbDep,
+    q: str = Query(..., min_length=1),
+    limit: int = 20
+):
+    return crud.search_users(db, query=q, limit=limit)
+
+
 @router.get("/{username}", response_model=ProfilePublicDTO)
 def get_public_profile(
     username: str,
@@ -51,11 +60,7 @@ def get_public_profile(
         is_followed_by_me = crud.is_following(db, follower_id=viewer_id, followee_id=user.id)
 
     return {
-        "id": user.id,
-        "username": user.username,
-        "nick": user.nick,
-        "accentColor": user.accent_color,
-        "avatarUrl": user.avatar_url,
+        **user.__dict__,
         **counts,
         "isFollowedByMe": is_followed_by_me,
     }
