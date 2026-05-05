@@ -9,6 +9,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
@@ -24,17 +25,18 @@ import com.yarnspace.app.domain.feed.UserSummary
 import com.yarnspace.app.retrofit.RetrofitClient
 import com.yarnspace.app.ui.feed.FeedAdapter
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
 
-    private enum class ProfileMode { ME, PUBLIC }
+    private enum class ProfileMode { PRIVATE, PUBLIC }
     private enum class Tab { POSTS, PROJECTS, SAVED }
 
     companion object {
         private const val ARG_USERNAME = "arg_username"
         private const val ARG_FORCE_ME = "arg_force_me"
-
 
         private const val ARG_PREFILL_ID = "arg_prefill_id"
         private const val ARG_PREFILL_USERNAME = "arg_prefill_username"
@@ -73,10 +75,9 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private val viewModel: ProfileViewModel by viewModels()
     private lateinit var adapter: FeedAdapter
-    private var profileMode: ProfileMode = ProfileMode.ME
-    private var viewingUsername: String? = null
-    private var isFollowedByMe: Boolean = false
+    private var profileMode: ProfileMode = ProfileMode.PRIVATE
     private var loadJob: Job? = null
 
     override fun onCreateView(
@@ -92,55 +93,19 @@ class ProfileFragment : Fragment() {
         val tvDisplayName = view.findViewById<TextView>(R.id.profile_display_name)
         val tvUsername = view.findViewById<TextView>(R.id.profile_username_text)
         val ivAvatar = view.findViewById<ImageView>(R.id.ivProfileAvatar)
-
         val btnBack = view.findViewById<ImageButton>(R.id.btnProfileBack)
         val btnEdit = view.findViewById<ImageButton>(R.id.btnProfileEdit)
-        val btnFollow = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnProfileFollow)
+        val btnFollow = view.findViewById<MaterialButton>(R.id.btnProfileFollow)
         val toggleGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.profileToggleGroup)
         val btnProjects = view.findViewById<MaterialButton>(R.id.profile_filter_projects)
         val btnPosts = view.findViewById<MaterialButton>(R.id.profile_filter_posts)
         val btnSaved = view.findViewById<MaterialButton>(R.id.profile_filter_saved)
-
         val tvFollowersCount = view.findViewById<TextView>(R.id.tvFollowersCount)
         val tvFollowingCount = view.findViewById<TextView>(R.id.tvFollowingCount)
         val tvPostsCount = view.findViewById<TextView>(R.id.tvPostsCount)
         val tvProjectsCount = view.findViewById<TextView>(R.id.tvProjectsCount)
         val tvSavedCount = view.findViewById<TextView>(R.id.tvSavedCount)
         val savedCountGroup = view.findViewById<View>(R.id.profileSavedCountGroup)
-
-        arguments?.let { args ->
-            val prefillDisplayName = args.getString(ARG_PREFILL_DISPLAY_NAME)
-            val prefillUsername = args.getString(ARG_PREFILL_USERNAME)
-            if (!prefillDisplayName.isNullOrBlank()) tvDisplayName.text = prefillDisplayName
-            if (!prefillUsername.isNullOrBlank()) tvUsername.text = getString(R.string.username_format, prefillUsername)
-
-            ivAvatar.setImageResource(R.drawable.ic_default_avatar)
-        }
-
-        btnEdit.setOnClickListener {
-            Snackbar.make(view, getString(R.string.profile_edit_coming_soon), Snackbar.LENGTH_SHORT).show()
-        }
-
-        btnBack.setOnClickListener {
-            if (!parentFragmentManager.popBackStackImmediate()) {
-                activity?.onBackPressedDispatcher?.onBackPressed()
-            }
-        }
-
-        adapter = FeedAdapter(
-            onProjectClick = { project ->
-                parentFragmentManager.beginTransaction()
-                    .replace(R.id.main_container, ProjectDetailsFragment.newInstance(project))
-                    .addToBackStack(null)
-                    .commit()
-            },
-        )
-
-        view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter
-
-        fun dpToPx(dp: Int): Int {
-            return (dp * resources.displayMetrics.density).toInt()
-        }
 
         fun styleTabButton(button: MaterialButton, selected: Boolean) {
             val primary = MaterialColors.getColor(button, com.google.android.material.R.attr.colorPrimary)
@@ -156,7 +121,7 @@ class ProfileFragment : Fragment() {
                 button.backgroundTintList = ColorStateList.valueOf(surface)
                 button.setTextColor(onSurface)
                 button.strokeColor = ColorStateList.valueOf(primary)
-                button.strokeWidth = dpToPx(1)
+                button.strokeWidth = (1 * resources.displayMetrics.density).toInt()
             }
         }
 
@@ -164,46 +129,36 @@ class ProfileFragment : Fragment() {
             val checkedId = toggleGroup.checkedButtonId
             styleTabButton(btnPosts, selected = checkedId == R.id.profile_filter_posts)
             styleTabButton(btnProjects, selected = checkedId == R.id.profile_filter_projects)
-
-            // Saved tab exists only in ME mode; if hidden, styling doesn't matter.
             styleTabButton(btnSaved, selected = checkedId == R.id.profile_filter_saved)
         }
 
-        fun currentTab(): Tab {
-            return when (toggleGroup.checkedButtonId) {
-                R.id.profile_filter_projects -> Tab.PROJECTS
-                R.id.profile_filter_saved -> Tab.SAVED
-                else -> Tab.POSTS
-            }
-        }
-
-        fun configureUiForMode(mode: ProfileMode) {
+        fun configureUiForMode(mode: ProfileMode, isViewingSelf: Boolean = false) {
             profileMode = mode
-
             when (mode) {
-                ProfileMode.ME -> {
+                ProfileMode.PRIVATE -> {
                     btnBack.visibility = View.GONE
                     btnEdit.visibility = View.VISIBLE
                     btnFollow.visibility = View.GONE
-
                     btnSaved.visibility = View.VISIBLE
-                    savedCountGroup.visibility = View.VISIBLE
+                    savedCountGroup.visibility = View.GONE
+                    btnFollow.alpha = 1.0f
                 }
-
                 ProfileMode.PUBLIC -> {
                     btnBack.visibility = View.VISIBLE
+
                     btnEdit.visibility = View.GONE
+
                     btnFollow.visibility = View.VISIBLE
+                    btnFollow.isEnabled = !isViewingSelf
+                    btnFollow.alpha = if (isViewingSelf) 0.5f else 1.0f
 
                     btnSaved.visibility = View.GONE
                     savedCountGroup.visibility = View.GONE
-
                     if (toggleGroup.checkedButtonId == R.id.profile_filter_saved) {
                         toggleGroup.check(R.id.profile_filter_posts)
                     }
                 }
             }
-
             applyTabStyles()
         }
 
@@ -216,19 +171,47 @@ class ProfileFragment : Fragment() {
         }
 
         fun updateFollowButton() {
-            btnFollow.text = if (isFollowedByMe) getString(R.string.profile_unfollow) else getString(R.string.profile_follow)
+            if (profileMode == ProfileMode.PUBLIC && btnFollow.visibility == View.VISIBLE) {
+                btnFollow.text = if (viewModel.isFollowedByMe) getString(R.string.profile_unfollow) else getString(R.string.profile_follow)
+            }
         }
 
-        fun loadTab(tab: Tab) {
-            val username = viewingUsername ?: return
+        fun currentTab(): Tab {
+            return when (toggleGroup.checkedButtonId) {
+                R.id.profile_filter_projects -> Tab.PROJECTS
+                R.id.profile_filter_saved -> Tab.SAVED
+                else -> Tab.POSTS
+            }
+        }
+
+        fun loadTab(tab: Tab, force: Boolean = false) {
+            val username = viewModel.viewingUsername ?: return
+            val pTab = when(tab) {
+                Tab.POSTS -> ProfileViewModel.ProfileTab.POSTS
+                Tab.PROJECTS -> ProfileViewModel.ProfileTab.PROJECTS
+                Tab.SAVED -> ProfileViewModel.ProfileTab.SAVED
+            }
+
+            if (!force && viewModel.loadedTabs.contains(pTab)) {
+                val cached = when(tab) {
+                    Tab.POSTS -> viewModel.posts
+                    Tab.PROJECTS -> viewModel.projects
+                    Tab.SAVED -> viewModel.saved
+                }
+                adapter.submitList(cached)
+                return
+            }
 
             loadJob?.cancel()
             loadJob = viewLifecycleOwner.lifecycleScope.launch {
                 val apiService = RetrofitClient.getInstance(requireContext())
-
                 val items: List<FeedItem> = try {
                     when (tab) {
-                        Tab.POSTS -> apiService.listUserPosts(username).map { it.toFeedItemPost() }
+                        Tab.POSTS -> coroutineScope {
+                            val posts = async { apiService.listUserPosts(username).map { it.toFeedItemPost() } }
+                            val projects = async { apiService.listUserProjects(username).map { it.toFeedItemProject() } }
+                            posts.await() + projects.await()
+                        }
                         Tab.PROJECTS -> apiService.listUserProjects(username).map { it.toFeedItemProject() }
                         Tab.SAVED -> apiService.listMySavedProjects().map { it.toFeedItemProject() }
                     }
@@ -240,7 +223,48 @@ class ProfileFragment : Fragment() {
                     .mapNotNull { it as? FeedItem.Base }
                     .sortedByDescending { it.createdAt }
                     .map { it as FeedItem }
+                
+                when(tab) {
+                    Tab.POSTS -> viewModel.posts = sorted
+                    Tab.PROJECTS -> viewModel.projects = sorted
+                    Tab.SAVED -> viewModel.saved = sorted
+                }
+                viewModel.loadedTabs.add(pTab)
                 adapter.submitList(sorted)
+            }
+        }
+
+        val args = arguments
+        val requestedUsername = args?.getString(ARG_USERNAME)
+        val forceMe = args?.getBoolean(ARG_FORCE_ME, false) ?: false
+        val initialMode = if (forceMe || requestedUsername == null) ProfileMode.PRIVATE else ProfileMode.PUBLIC
+        configureUiForMode(initialMode)
+
+        arguments?.let { a ->
+            val prefillDisplayName = a.getString(ARG_PREFILL_DISPLAY_NAME)
+            val prefillUsername = a.getString(ARG_PREFILL_USERNAME)
+            if (!prefillDisplayName.isNullOrBlank()) tvDisplayName.text = prefillDisplayName
+            if (!prefillUsername.isNullOrBlank()) tvUsername.text = getString(R.string.username_format, prefillUsername)
+            ivAvatar.setImageResource(R.drawable.ic_default_avatar)
+        }
+
+        adapter = FeedAdapter(
+            onProjectClick = { project ->
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.main_container, ProjectDetailsFragment.newInstance(project))
+                    .addToBackStack(null)
+                    .commit()
+            },
+        )
+        view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter
+
+        btnEdit.setOnClickListener {
+            Snackbar.make(view, getString(R.string.profile_edit_coming_soon), Snackbar.LENGTH_SHORT).show()
+        }
+
+        btnBack.setOnClickListener {
+            if (!parentFragmentManager.popBackStackImmediate()) {
+                activity?.onBackPressedDispatcher?.onBackPressed()
             }
         }
 
@@ -249,64 +273,64 @@ class ProfileFragment : Fragment() {
             when (checkedId) {
                 R.id.profile_filter_posts -> loadTab(Tab.POSTS)
                 R.id.profile_filter_projects -> loadTab(Tab.PROJECTS)
-                R.id.profile_filter_saved -> if (profileMode == ProfileMode.ME) loadTab(Tab.SAVED)
+                R.id.profile_filter_saved -> if (profileMode == ProfileMode.PRIVATE) loadTab(Tab.SAVED)
             }
-
             applyTabStyles()
         }
 
-        applyTabStyles()
-
         btnFollow.setOnClickListener {
-            val username = viewingUsername ?: return@setOnClickListener
+            val username = viewModel.viewingUsername ?: return@setOnClickListener
             if (profileMode != ProfileMode.PUBLIC) return@setOnClickListener
 
             btnFollow.isEnabled = false
             lifecycleScope.launch {
                 try {
                     val apiService = RetrofitClient.getInstance(requireContext())
-                    if (isFollowedByMe) {
+                    if (viewModel.isFollowedByMe) {
                         apiService.unfollowUser(username)
-                        isFollowedByMe = false
+                        viewModel.isFollowedByMe = false
                     } else {
                         apiService.followUser(username)
-                        isFollowedByMe = true
+                        viewModel.isFollowedByMe = true
                     }
                     updateFollowButton()
                 } catch (_: Exception) {
-                    // ignore for now
                 } finally {
                     btnFollow.isEnabled = true
                 }
             }
         }
 
-        configureUiForMode(ProfileMode.ME)
-
         lifecycleScope.launch {
-            val args = arguments
-            val requestedUsername = args?.getString(ARG_USERNAME)
-            val forceMe = args?.getBoolean(ARG_FORCE_ME, false) ?: false
             val apiService = RetrofitClient.getInstance(requireContext())
-
-            val me = try {
-                apiService.getMe()
-            } catch (_: Exception) {
-                null
-            }
-
+            val me = try { apiService.getMe() } catch (_: Exception) { null }
             val myUsername = me?.username
+
             val resolvedMode = when {
-                forceMe -> ProfileMode.ME
-                requestedUsername.isNullOrBlank() -> ProfileMode.ME
-                !myUsername.isNullOrBlank() && requestedUsername == myUsername -> ProfileMode.ME
+                forceMe -> ProfileMode.PRIVATE
+                requestedUsername.isNullOrBlank() -> ProfileMode.PRIVATE
                 else -> ProfileMode.PUBLIC
             }
+            val viewingSelf = !myUsername.isNullOrBlank() && (requestedUsername == myUsername || resolvedMode == ProfileMode.PRIVATE)
 
-            viewingUsername = if (resolvedMode == ProfileMode.ME) myUsername else requestedUsername
-            configureUiForMode(resolvedMode)
+            val finalUsername = if (resolvedMode == ProfileMode.PRIVATE) myUsername else requestedUsername
+            
+            if (viewModel.viewingUsername == finalUsername && viewModel.profile != null) {
+                configureUiForMode(resolvedMode, viewingSelf)
+                val profile = viewModel.profile!!
+                tvDisplayName.text = profile.displayName
+                tvUsername.text = getString(R.string.username_format, profile.username)
+                updateCounts(profile)
+                if (profileMode == ProfileMode.PUBLIC) updateFollowButton()
+                loadTab(currentTab())
+                return@launch
+            }
 
-            val usernameToLoad = viewingUsername
+            viewModel.clearCache()
+            viewModel.viewingUsername = finalUsername
+            configureUiForMode(resolvedMode, viewingSelf)
+
+            val usernameToLoad = viewModel.viewingUsername
             if (usernameToLoad.isNullOrBlank()) {
                 tvDisplayName.text = getString(R.string.error_loading_profile)
                 return@launch
@@ -314,18 +338,14 @@ class ProfileFragment : Fragment() {
 
             try {
                 val profile = apiService.getPublicProfile(usernameToLoad)
-
+                viewModel.profile = profile
                 tvDisplayName.text = profile.displayName
                 tvUsername.text = getString(R.string.username_format, profile.username)
-                ivAvatar.setImageResource(R.drawable.ic_default_avatar)
-
                 updateCounts(profile)
-
                 if (profileMode == ProfileMode.PUBLIC) {
-                    isFollowedByMe = profile.isFollowedByMe ?: false
+                    viewModel.isFollowedByMe = profile.isFollowedByMe ?: false
                     updateFollowButton()
                 }
-
                 loadTab(currentTab())
             } catch (_: Exception) {
                 tvDisplayName.text = getString(R.string.error_loading_profile)
@@ -349,7 +369,7 @@ class ProfileFragment : Fragment() {
             author = author.toUserSummary(),
             createdAt = createdAt,
             content = content,
-            imageResId = null,
+            imageUrl = imageUrl
         )
     }
 
@@ -360,7 +380,7 @@ class ProfileFragment : Fragment() {
             createdAt = createdAt,
             title = title,
             content = content,
-            imageResId = null,
+            imageUrl = imageUrl,
             hookSize = hookSize,
             pattern = pattern,
             yarnType = yarnType,

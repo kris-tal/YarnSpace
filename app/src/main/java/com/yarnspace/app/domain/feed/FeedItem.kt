@@ -8,6 +8,7 @@ sealed interface FeedItem {
         val createdAt: Long
 
         val imageResId: Int?
+        val imageUrl: String?
     }
 
     data class Post(
@@ -16,6 +17,7 @@ sealed interface FeedItem {
         override val createdAt: Long,
         val content: String,
         override val imageResId: Int? = null,
+        override val imageUrl: String? = null,
     ) : Base
 
     data class Project(
@@ -26,6 +28,7 @@ sealed interface FeedItem {
         val title: String,
         val content: String? = null,
         override val imageResId: Int? = null,
+        override val imageUrl: String? = null,
 
         val hookSize: String? = null,
         val pattern: String? = null,
@@ -35,4 +38,3 @@ sealed interface FeedItem {
         val additionalMaterials: String? = null,
     ) : Base
 }
-

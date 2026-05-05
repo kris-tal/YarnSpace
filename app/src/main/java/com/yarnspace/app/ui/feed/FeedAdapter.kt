@@ -1,5 +1,6 @@
 package com.yarnspace.app.ui.feed
 
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,7 +40,7 @@ class FeedAdapter(private val onProjectClick: (FeedItem.Project) -> Unit) : List
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val ivAvatar: ImageView = itemView.findViewById(R.id.ivFeedItemAvatar)
-        private val tvType: TextView = itemView.findViewById(R.id.tvFeedItemType)
+        private val tvTimestamp: TextView = itemView.findViewById(R.id.tvFeedItemType) // Reusing this view for timestamp
         private val tvAuthor: TextView = itemView.findViewById(R.id.tvFeedItemAuthor)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvFeedItemTitle)
         private val tvContent: TextView = itemView.findViewById(R.id.tvFeedItemContent)
@@ -52,12 +53,16 @@ class FeedAdapter(private val onProjectClick: (FeedItem.Project) -> Unit) : List
             if (base != null) {
                 val avatarRes = base.author.avatarResId ?: R.drawable.ic_default_avatar
                 ivAvatar.setImageResource(avatarRes)
-                // glide later
+
+                tvTimestamp.text = DateUtils.getRelativeTimeSpanString(
+                    base.createdAt,
+                    System.currentTimeMillis(),
+                    DateUtils.MINUTE_IN_MILLIS
+                )
             }
 
             when (item) {
                 is FeedItem.Post -> {
-                    tvType.text = itemView.context.getString(R.string.feed_item_type_post)
                     tvTitle.visibility = View.GONE
                     tvContent.text = item.content
                     itemView.isClickable = false
@@ -65,7 +70,6 @@ class FeedAdapter(private val onProjectClick: (FeedItem.Project) -> Unit) : List
                 }
 
                 is FeedItem.Project -> {
-                    tvType.text = itemView.context.getString(R.string.feed_item_type_project)
                     tvTitle.visibility = View.VISIBLE
                     tvTitle.text = item.title
                     tvContent.text = item.content ?: ""
@@ -74,7 +78,6 @@ class FeedAdapter(private val onProjectClick: (FeedItem.Project) -> Unit) : List
                 }
 
                 else -> {
-                    tvType.text = ""
                     tvTitle.visibility = View.GONE
                     tvContent.text = ""
                     itemView.isClickable = false

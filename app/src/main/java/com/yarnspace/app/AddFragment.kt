@@ -145,7 +145,6 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                 .show()
         }
 
-        // Default tab: POST
         isInternalTabChange = true
         toggleGroup.check(R.id.add_tab_post)
         isInternalTabChange = false
@@ -171,7 +170,6 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             if (targetTab == currentTab) return@addOnButtonCheckedListener
 
             if (isDirty(currentTab)) {
-                // Revert immediately; proceed only if user confirms discard.
                 isInternalTabChange = true
                 toggleGroup.check(buttonIdForTab(currentTab))
                 isInternalTabChange = false
@@ -190,6 +188,10 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             }
         }
 
+        fun navigateToProfile() {
+            parentFragmentManager.popBackStack()    //
+        }
+
         btnPublishPost.setOnClickListener {
             val content = trimmed(etPostContent)
             val imageUrl: String? = null
@@ -206,6 +208,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                     api.createPost(PostCreateDto(content = content, imageUrl = imageUrl))
                     Snackbar.make(view, getString(R.string.add_success_post_published), Snackbar.LENGTH_SHORT).show()
                     clearTab(Tab.POST)
+                    navigateToProfile()
                 } catch (e: Exception) {
                     val message = when (e) {
                         is HttpException -> "Failed to publish post: ${e.code()}"
@@ -245,6 +248,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                     api.createProject(payload)
                     Snackbar.make(view, getString(R.string.add_success_project_published), Snackbar.LENGTH_SHORT).show()
                     clearTab(Tab.PROJECT)
+                    navigateToProfile()
                 } catch (e: Exception) {
                     val message = when (e) {
                         is HttpException -> "Failed to publish project: ${e.code()}"
