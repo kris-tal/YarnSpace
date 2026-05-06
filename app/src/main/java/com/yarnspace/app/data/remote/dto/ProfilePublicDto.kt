@@ -22,8 +22,9 @@ data class PostReadDto(
     @SerializedName("id") val id: Int,
     @SerializedName("authorId") val authorId: Int,
     @SerializedName("author") val author: UserPublicDto,
-    @SerializedName("content") val content: String,
+    @SerializedName("content") val content: String? = null,
     @SerializedName("imageUrl") val imageUrl: String? = null,
+    @SerializedName("rebloggedProject") val rebloggedProject: ProjectReadDto? = null,
     @SerializedName("createdAt") val createdAt: Long,
 )
 
@@ -42,7 +43,7 @@ data class ProjectReadDto(
     @SerializedName("timeToComplete") val timeToComplete: String? = null,
     @SerializedName("additionalMaterials") val additionalMaterials: String? = null,
 
+    @SerializedName("isSavedByMe") val isSavedByMe: Boolean? = null,
+    @SerializedName("isRebloggedByMe") val isRebloggedByMe: Boolean? = null,
     @SerializedName("createdAt") val createdAt: Long,
 )
-
-

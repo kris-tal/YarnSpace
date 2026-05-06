@@ -15,9 +15,10 @@ sealed interface FeedItem {
         override val id: Long,
         override val author: UserSummary,
         override val createdAt: Long,
-        val content: String,
+        val content: String?,
         override val imageResId: Int? = null,
         override val imageUrl: String? = null,
+        val rebloggedProject: Project? = null,
     ) : Base
 
     data class Project(
@@ -36,5 +37,7 @@ sealed interface FeedItem {
         val yarnAmount: String? = null,
         val timeToComplete: String? = null,
         val additionalMaterials: String? = null,
+        val isSavedByMe: Boolean = false,
+        val isRebloggedByMe: Boolean = false,
     ) : Base
 }

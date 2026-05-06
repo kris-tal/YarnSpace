@@ -22,7 +22,13 @@ def create_post(
     user_id: CurrentUserId,
     db: DbDep,
 ):
-    post = crud.create_post(db, author_id=user_id, content=payload.content, image_url=payload.imageUrl)
+    post = crud.create_post(
+        db,
+        author_id=user_id,
+        content=payload.content,
+        image_url=payload.imageUrl,
+        reblogged_project_id=payload.rebloggedProjectId
+    )
     post = crud.get_post(db, post.id)
     return post
 
@@ -30,6 +36,3 @@ def create_post(
 @router.get("/{post_id}", response_model=PostReadDTO)
 def get_post(post_id: int, db: DbDep):
     return crud.get_post(db, post_id)
-
-
-

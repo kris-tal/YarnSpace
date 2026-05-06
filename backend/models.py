@@ -15,7 +15,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
 
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
-    projects = relationship("Project", back_populates="author", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="author", cascade="all, delete-orphan", foreign_keys="Project.author_id")
 
     following_links = relationship(
         "Follow",
@@ -41,11 +41,14 @@ class Post(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     author_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    content = Column(Text, nullable=False)
+    content = Column(Text, nullable=True)
     image_url = Column(String(500), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
+    reblogged_project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+
     author = relationship("User", back_populates="posts")
+    reblogged_project = relationship("Project")
 
 class Project(Base):
     __tablename__ = "projects"
@@ -65,7 +68,7 @@ class Project(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    author = relationship("User", back_populates="projects")
+    author = relationship("User", back_populates="projects", foreign_keys=[author_id])
     saved_by_links = relationship(
         "SavedProject",
         back_populates="project",
@@ -93,4 +96,3 @@ class SavedProject(Base):
 
     user = relationship("User", back_populates="saved_project_links")
     project = relationship("Project", back_populates="saved_by_links")
-

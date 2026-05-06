@@ -98,4 +98,8 @@
     <string name="add_discard_changes_action_discard">Discard</string>
     <string name="add_discard_changes_action_cancel">Cancel</string>
 
+    <string name="feed_reblogged_notice">%1$s reblogged a project</string>
+    <string name="action_reblog">Reblog</string>
+    <string name="action_save">Save</string>
+
 </resources>

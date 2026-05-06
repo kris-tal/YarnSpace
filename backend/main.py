@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 from db import engine, Base
 import models
-from routers import auth, users, posts, projects
+from routers import auth, users, posts, projects, feed
 
 app = FastAPI(
     title="YarnSpace API",
@@ -14,6 +14,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(posts.router)
 app.include_router(projects.router)
+app.include_router(feed.router)
 
 @app.on_event("startup")
 def startup_event():

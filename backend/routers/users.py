@@ -7,14 +7,41 @@ from sqlalchemy.orm import Session
 
 import crud
 from db import get_db
-from deps import get_current_user_id, get_optional_user_id
+from deps import get_current_user_id, get_optional_current_user_id
 from schemas import AccentColorUpdateDTO, UserPrivateDTO, ProfilePublicDTO, PostReadDTO, ProjectReadDTO, UserPublicDTO
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 DbDep = Annotated[Session, Depends(get_db)]
 CurrentUserId = Annotated[int, Depends(get_current_user_id)]
-OptionalUserId = Annotated[int | None, Depends(get_optional_user_id)]
+OptionalUserId = Annotated[int | None, Depends(get_optional_current_user_id)]
+
+
+def _attach_extra_to_project(db: Session, project_obj: crud.models.Project, current_user_id: int | None):
+    dto = ProjectReadDTO.model_validate(project_obj)
+    if current_user_id:
+        dto.isSavedByMe = crud.is_project_saved_by_user(db, user_id=current_user_id, project_id=project_obj.id)
+        dto.isRebloggedByMe = crud.is_project_reblogged_by_user(db, user_id=current_user_id, project_id=project_obj.id)
+    else:
+        dto.isSavedByMe = False
+        dto.isRebloggedByMe = False
+    return dto
+
+
+def _attach_extra_to_post(db: Session, post_obj: crud.models.Post, current_user_id: int | None):
+    dto = PostReadDTO.model_validate(post_obj)
+    if dto.rebloggedProject and post_obj.reblogged_project_id:
+        if current_user_id:
+            dto.rebloggedProject.isSavedByMe = crud.is_project_saved_by_user(
+                db, user_id=current_user_id, project_id=post_obj.reblogged_project_id
+            )
+            dto.rebloggedProject.isRebloggedByMe = crud.is_project_reblogged_by_user(
+                db, user_id=current_user_id, project_id=post_obj.reblogged_project_id
+            )
+        else:
+            dto.rebloggedProject.isSavedByMe = False
+            dto.rebloggedProject.isRebloggedByMe = False
+    return dto
 
 
 @router.get("/me", response_model=UserPrivateDTO)
@@ -69,25 +96,27 @@ def get_public_profile(
 @router.get("/{username}/posts", response_model=list[PostReadDTO])
 def list_user_posts(
     username: str,
+    viewer_id: OptionalUserId,
     db: DbDep,
     limit: int = 20,
     offset: int = 0,
 ):
     user = crud.get_user_by_username(db, username)
     posts = crud.list_posts_by_user(db, user_id=user.id, limit=limit, offset=offset)
-    return posts
+    return [_attach_extra_to_post(db, p, viewer_id) for p in posts]
 
 
 @router.get("/{username}/projects", response_model=list[ProjectReadDTO])
 def list_user_projects(
     username: str,
+    viewer_id: OptionalUserId,
     db: DbDep,
     limit: int = 20,
     offset: int = 0,
 ):
     user = crud.get_user_by_username(db, username)
     projects = crud.list_projects_by_user(db, user_id=user.id, limit=limit, offset=offset)
-    return projects
+    return [_attach_extra_to_project(db, p, viewer_id) for p in projects]
 
 
 @router.get("/me/saved-projects", response_model=list[ProjectReadDTO])
@@ -98,7 +127,12 @@ def list_my_saved_projects(
     offset: int = 0,
 ):
     projects = crud.list_saved_projects(db, user_id=user_id, limit=limit, offset=offset)
-    return projects
+    result = []
+    for p in projects:
+        dto = _attach_extra_to_project(db, p, user_id)
+        dto.isSavedByMe = True
+        result.append(dto)
+    return result
 
 
 @router.post("/{username}/follow")

@@ -40,7 +40,7 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
                 !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                     Snackbar.make(view, getString(R.string.error_invalid_email), Snackbar.LENGTH_SHORT).show()
                 }
-                password.length < 6 -> { // Backend expects min 6 as per schemas.py
+                password.length < 6 -> {    //backend expects min 6 as per schemas.py
                     Snackbar.make(view, getString(R.string.error_password_length), Snackbar.LENGTH_SHORT).show()
                 }
                 password != confirm -> {

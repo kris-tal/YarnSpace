@@ -39,6 +39,26 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
+        <ImageButton
+            android:id="@+id/btnProjectDetailsReblog"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/action_reblog"
+            android:src="@android:drawable/ic_menu_share"
+            app:tint="?attr/colorOnPrimary" />
+
+        <ImageButton
+            android:id="@+id/btnProjectDetailsSave"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/action_save"
+            android:src="@android:drawable/btn_star_big_off"
+            app:tint="?attr/colorOnPrimary" />
+
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -243,4 +263,3 @@
     </androidx.core.widget.NestedScrollView>
 
 </LinearLayout>
-

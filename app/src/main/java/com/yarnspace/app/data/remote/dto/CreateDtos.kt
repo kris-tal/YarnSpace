@@ -3,8 +3,9 @@ package com.yarnspace.app.data.remote.dto
 import com.google.gson.annotations.SerializedName
 
 data class PostCreateDto(
-    @SerializedName("content") val content: String,
+    @SerializedName("content") val content: String? = null,
     @SerializedName("imageUrl") val imageUrl: String? = null,
+    @SerializedName("rebloggedProjectId") val rebloggedProjectId: Long? = null,
 )
 
 data class ProjectCreateDto(

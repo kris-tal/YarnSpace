@@ -10,12 +10,15 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
+import com.yarnspace.app.data.feed.RemoteFeedRepository
 import com.yarnspace.app.data.remote.dto.PostReadDto
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
 import com.yarnspace.app.data.remote.dto.ProjectReadDto
@@ -24,6 +27,7 @@ import com.yarnspace.app.domain.feed.FeedItem
 import com.yarnspace.app.domain.feed.UserSummary
 import com.yarnspace.app.retrofit.RetrofitClient
 import com.yarnspace.app.ui.feed.FeedAdapter
+import com.yarnspace.app.ui.feed.FeedViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -76,6 +80,16 @@ class ProfileFragment : Fragment() {
     }
 
     private val viewModel: ProfileViewModel by viewModels()
+    
+    private val feedViewModel: FeedViewModel by viewModels {
+        object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return FeedViewModel(RemoteFeedRepository(requireContext())) as T
+            }
+        }
+    }
+
     private lateinit var adapter: FeedAdapter
     private var profileMode: ProfileMode = ProfileMode.PRIVATE
     private var loadJob: Job? = null
@@ -205,6 +219,8 @@ class ProfileFragment : Fragment() {
             loadJob?.cancel()
             loadJob = viewLifecycleOwner.lifecycleScope.launch {
                 val apiService = RetrofitClient.getInstance(requireContext())
+                val me = try { apiService.getMe() } catch (_: Exception) { null }
+                
                 val items: List<FeedItem> = try {
                     when (tab) {
                         Tab.POSTS -> coroutineScope {
@@ -255,6 +271,14 @@ class ProfileFragment : Fragment() {
                     .addToBackStack(null)
                     .commit()
             },
+            onReblogClick = { project ->
+                feedViewModel.reblogProject(project)
+                if (currentTab() == Tab.POSTS) loadTab(Tab.POSTS, force = true)
+            },
+            onSaveClick = { project ->
+                feedViewModel.toggleSaveProject(project)
+                if (currentTab() == Tab.SAVED) loadTab(Tab.SAVED, force = true)
+            }
         )
         view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter
 
@@ -369,7 +393,8 @@ class ProfileFragment : Fragment() {
             author = author.toUserSummary(),
             createdAt = createdAt,
             content = content,
-            imageUrl = imageUrl
+            imageUrl = imageUrl,
+            rebloggedProject = rebloggedProject?.toFeedItemProject()
         )
     }
 
@@ -387,6 +412,8 @@ class ProfileFragment : Fragment() {
             yarnAmount = yarnAmount,
             timeToComplete = timeToComplete,
             additionalMaterials = additionalMaterials,
+            isSavedByMe = isSavedByMe ?: false,
+            isRebloggedByMe = isRebloggedByMe ?: false
         )
     }
 }

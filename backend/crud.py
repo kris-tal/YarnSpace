@@ -49,7 +49,7 @@ def create_user(
 
 def get_user_by_id(db: Session, user_id: int) -> models.User:
     user = db.get(models.User, user_id)
-    if student := not user:
+    if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
@@ -144,31 +144,33 @@ def is_following(db: Session, *, follower_id: int, followee_id: int) -> bool:
 # ===========================================================
 
 
-def create_post(db: Session, *, author_id: int, content: str, image_url: Optional[str]) -> models.Post:
+def create_post(db: Session, *, author_id: int, content: Optional[str], image_url: Optional[str], reblogged_project_id: Optional[int] = None) -> models.Post:
     get_user_by_id(db, author_id)
-    post = models.Post(author_id=author_id, content=content, image_url=image_url)
+    post = models.Post(author_id=author_id, content=content, image_url=image_url, reblogged_project_id=reblogged_project_id)
     db.add(post)
     db.commit()
     db.refresh(post)
 
     db.refresh(post, attribute_names=["author"])
+    if post.reblogged_project_id:
+        db.refresh(post, attribute_names=["reblogged_project"])
     return post
 
 
-def list_posts_by_user(db: Session, *, user_id: int, limit: int = 20, offset: int = 0) -> List[models.Post]:
+def list_posts_by_user(db: Session, *, user_id: Optional[int], limit: int = 20, offset: int = 0) -> List[models.Post]:
     stmt = (
         select(models.Post)
-        .options(joinedload(models.Post.author))
-        .where(models.Post.author_id == user_id)
-        .order_by(models.Post.created_at.desc())
-        .limit(limit)
-        .offset(offset)
+        .options(joinedload(models.Post.author), joinedload(models.Post.reblogged_project).joinedload(models.Project.author))
     )
+    if user_id is not None:
+        stmt = stmt.where(models.Post.author_id == user_id)
+
+    stmt = stmt.order_by(models.Post.created_at.desc()).limit(limit).offset(offset)
     return list(db.execute(stmt).scalars().all())
 
 
 def get_post(db: Session, post_id: int) -> models.Post:
-    stmt = select(models.Post).options(joinedload(models.Post.author)).where(models.Post.id == post_id)
+    stmt = select(models.Post).options(joinedload(models.Post.author), joinedload(models.Post.reblogged_project).joinedload(models.Project.author)).where(models.Post.id == post_id)
     post = db.execute(stmt).scalar_one_or_none()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
@@ -190,15 +192,12 @@ def create_project(db: Session, *, author_id: int, data: dict) -> models.Project
     return project
 
 
-def list_projects_by_user(db: Session, *, user_id: int, limit: int = 20, offset: int = 0) -> List[models.Project]:
-    stmt = (
-        select(models.Project)
-        .options(joinedload(models.Project.author))
-        .where(models.Project.author_id == user_id)
-        .order_by(models.Project.created_at.desc())
-        .limit(limit)
-        .offset(offset)
-    )
+def list_projects_by_user(db: Session, *, user_id: Optional[int], limit: int = 20, offset: int = 0) -> List[models.Project]:
+    stmt = select(models.Project).options(joinedload(models.Project.author))
+    if user_id is not None:
+        stmt = stmt.where(models.Project.author_id == user_id)
+
+    stmt = stmt.order_by(models.Project.created_at.desc()).limit(limit).offset(offset)
     return list(db.execute(stmt).scalars().all())
 
 
@@ -221,6 +220,26 @@ def list_saved_projects(db: Session, *, user_id: int, limit: int = 20, offset: i
         .offset(offset)
     )
     return list(db.execute(stmt).scalars().all())
+
+
+def is_project_saved_by_user(db: Session, *, user_id: int, project_id: int) -> bool:
+    stmt = select(models.SavedProject).where(
+        models.SavedProject.user_id == user_id,
+        models.SavedProject.project_id == project_id,
+    )
+    return db.execute(stmt).scalar_one_or_none() is not None
+
+
+def is_project_reblogged_by_user(db: Session, *, user_id: int, project_id: int) -> bool:
+    stmt = (
+        select(models.Post.id)
+        .where(
+            models.Post.author_id == user_id,
+            models.Post.reblogged_project_id == project_id,
+        )
+        .limit(1)
+    )
+    return db.execute(stmt).scalar_one_or_none() is not None
 
 
 # ===========================================================

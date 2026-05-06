@@ -72,4 +72,13 @@ interface ApiService {
 
     @POST("projects/")
     suspend fun createProject(@Body payload: ProjectCreateDto): ProjectReadDto
+
+    @POST("projects/{id}/save")
+    suspend fun saveProject(@Path("id") projectId: Long): Map<String, String>
+
+    @DELETE("projects/{id}/save")
+    suspend fun unsaveProject(@Path("id") projectId: Long): Map<String, String>
+
+    @GET("feed/")
+    suspend fun getGlobalFeed(@Query("limit") limit: Int = 50): List<com.google.gson.JsonElement>
 }

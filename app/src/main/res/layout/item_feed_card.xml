@@ -14,6 +14,7 @@
 
         <!-- Top bar with accent background for username -->
         <LinearLayout
+            android:id="@+id/llFeedItemTopBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -62,6 +63,17 @@
             android:padding="16dp">
 
             <TextView
+                android:id="@+id/tvRebloggedNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:drawableStart="@android:drawable/ic_menu_share"
+                android:drawablePadding="8dp"
+                android:text="reblogged a project"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/tvFeedItemTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -87,6 +99,35 @@
                 android:textColor="?attr/colorOnBackground"
                 android:textSize="15sp"
                 android:text="content" />
+
+            <!-- Action buttons -->
+            <LinearLayout
+                android:id="@+id/llFeedActions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnReblog"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_share"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="Reblog" />
+
+                <ImageButton
+                    android:id="@+id/btnSave"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/btn_star_big_off"
+                    app:tint="?attr/colorOnSurfaceVariant"
+                    android:contentDescription="Save" />
+
+            </LinearLayout>
 
         </LinearLayout>
 

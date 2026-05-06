@@ -1,19 +1,31 @@
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 import crud
 from db import get_db
-from deps import get_current_user_id
+from deps import get_current_user_id, get_optional_current_user_id
 from schemas import ProjectCreateDTO, ProjectReadDTO
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 DbDep = Annotated[Session, Depends(get_db)]
 CurrentUserId = Annotated[int, Depends(get_current_user_id)]
+OptionalCurrentUserId = Annotated[int | None, Depends(get_optional_current_user_id)]
+
+
+def _attach_extra_fields(db: Session, project: crud.models.Project, current_user_id: int | None):
+    dto = ProjectReadDTO.model_validate(project)
+    if current_user_id:
+        dto.isSavedByMe = crud.is_project_saved_by_user(db, user_id=current_user_id, project_id=project.id)
+        dto.isRebloggedByMe = crud.is_project_reblogged_by_user(db, user_id=current_user_id, project_id=project.id)
+    else:
+        dto.isSavedByMe = False
+        dto.isRebloggedByMe = False
+    return dto
 
 
 @router.post("/", response_model=ProjectReadDTO)
@@ -35,12 +47,13 @@ def create_project(
     }
     project = crud.create_project(db, author_id=user_id, data=data)
     project = crud.get_project(db, project.id)
-    return project
+    return _attach_extra_fields(db, project, user_id)
 
 
 @router.get("/{project_id}", response_model=ProjectReadDTO)
-def get_project(project_id: int, db: DbDep):
-    return crud.get_project(db, project_id)
+def get_project(project_id: int, db: DbDep, user_id: OptionalCurrentUserId):
+    project = crud.get_project(db, project_id)
+    return _attach_extra_fields(db, project, user_id)
 
 
 @router.post("/{project_id}/save")
@@ -49,7 +62,6 @@ def save_project(
     user_id: CurrentUserId,
     db: DbDep,
 ):
-
     crud.get_project(db, project_id)
     crud.save_project(db, user_id=user_id, project_id=project_id)
     return {"status": "ok"}
@@ -63,6 +75,3 @@ def unsave_project(
 ):
     crud.unsave_project(db, user_id=user_id, project_id=project_id)
     return {"status": "ok"}
-
-
-

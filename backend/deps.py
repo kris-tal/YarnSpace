@@ -16,7 +16,7 @@ def get_current_user_id(token: Annotated[str, Depends(oauth2_required)]) -> int:
     return decode_access_token(token)
 
 
-def get_optional_user_id(token: Annotated[Optional[str], Depends(oauth2_optional)]) -> Optional[int]:
+def get_optional_current_user_id(token: Annotated[Optional[str], Depends(oauth2_optional)]) -> Optional[int]:
     if not token:
         return None
     try:

@@ -56,16 +56,18 @@ class ProfilePublicDTO(UserPublicDTO):
 # ===========================================================
 
 class PostCreateDTO(BaseModel):
-    content: str = Field(min_length=1)
+    content: Optional[str] = None
     imageUrl: Optional[str] = None
+    rebloggedProjectId: Optional[int] = Field(default=None, alias="rebloggedProjectId")
 
 
 class PostReadDTO(ORMBaseModel):
     id: int
     authorId: int = Field(validation_alias=AliasChoices("author_id", "authorId"))
     author: UserPublicDTO
-    content: str
+    content: Optional[str]
     imageUrl: Optional[str] = Field(default=None, validation_alias=AliasChoices("image_url", "imageUrl"))
+    rebloggedProject: Optional[ProjectReadDTO] = Field(default=None, validation_alias=AliasChoices("reblogged_project", "rebloggedProject"))
     createdAt: int = Field(validation_alias=AliasChoices("created_at", "createdAt"))
 
     @field_validator("createdAt", mode="before")
@@ -110,6 +112,9 @@ class ProjectReadDTO(ORMBaseModel):
     additionalMaterials: Optional[str] = Field(
         default=None, validation_alias=AliasChoices("additional_materials", "additionalMaterials")
     )
+
+    isSavedByMe: Optional[bool] = None
+    isRebloggedByMe: Optional[bool] = None
 
     createdAt: int = Field(validation_alias=AliasChoices("created_at", "createdAt"))
 
