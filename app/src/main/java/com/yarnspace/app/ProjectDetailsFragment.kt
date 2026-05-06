@@ -100,6 +100,16 @@ class ProjectDetailsFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_project_details, container, false)
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        // `MainActivity` ma globalny (nakładany) przycisk ustawień w prawym górnym rogu.
+        // W widoku szczegółów mamy własny pasek akcji z ikonami reblog/save,
+        // więc ukrywamy overlay, aby nie nachodził na te przyciski.
+        activity?.findViewById<View>(R.id.settings_panel)?.visibility = View.GONE
+        activity?.findViewById<View>(R.id.btn_settings_toggle)?.visibility = View.GONE
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -140,7 +150,7 @@ class ProjectDetailsFragment : Fragment() {
                 isReblogged = true
                 project = project.copy(isRebloggedByMe = true)
                 updateReblogButton(btnReblog)
-                com.google.android.material.snackbar.Snackbar.make(view, "Project reblogged!", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
+                com.google.android.material.snackbar.Snackbar.make(view, "Project reblogged !", com.google.android.material.snackbar.Snackbar.LENGTH_SHORT).show()
             }
         }
 
@@ -156,24 +166,23 @@ class ProjectDetailsFragment : Fragment() {
     private fun updateSaveButton(btnSave: ImageButton) {
         val saveIcon = if (isSaved) R.drawable.ic_star_filled else R.drawable.ic_star_outline
         btnSave.setImageResource(saveIcon)
-        
-        val tintColor = if (isSaved) {
-            MaterialColors.getColor(btnSave, com.google.android.material.R.attr.colorPrimary)
-        } else {
-            MaterialColors.getColor(btnSave, com.google.android.material.R.attr.colorOnSurfaceVariant)
-        }
+
+        val tintColor = MaterialColors.getColor(btnSave, com.google.android.material.R.attr.colorOnPrimary)
         btnSave.imageTintList = ColorStateList.valueOf(tintColor)
+        btnSave.imageAlpha = if (isSaved) 255 else 170
     }
 
     private fun updateReblogButton(btnReblog: ImageButton) {
         val reblogIcon = if (isReblogged) R.drawable.ic_reblog_filled else R.drawable.ic_reblog_outline
         btnReblog.setImageResource(reblogIcon)
-        
-        val tintColor = if (isReblogged) {
-            MaterialColors.getColor(btnReblog, com.google.android.material.R.attr.colorPrimary)
-        } else {
-            MaterialColors.getColor(btnReblog, com.google.android.material.R.attr.colorOnSurfaceVariant)
-        }
+
+        val tintColor = MaterialColors.getColor(btnReblog, com.google.android.material.R.attr.colorOnPrimary)
         btnReblog.imageTintList = ColorStateList.valueOf(tintColor)
+        btnReblog.imageAlpha = if (isReblogged) 255 else 170
+    }
+
+    override fun onStop() {
+        activity?.findViewById<View>(R.id.btn_settings_toggle)?.visibility = View.VISIBLE
+        super.onStop()
     }
 }

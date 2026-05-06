@@ -46,6 +46,7 @@
             android:layout_gravity="center_vertical"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/action_reblog"
+            android:padding="8dp"
             android:src="@android:drawable/ic_menu_share"
             app:tint="?attr/colorOnPrimary" />
 
@@ -56,6 +57,7 @@
             android:layout_gravity="center_vertical"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/action_save"
+            android:padding="8dp"
             android:src="@android:drawable/btn_star_big_off"
             app:tint="?attr/colorOnPrimary" />
 

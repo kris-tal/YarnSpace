@@ -5,7 +5,8 @@ import com.yarnspace.app.domain.feed.UserSummary
 
 class MockFeedRepository : FeedRepository {
 
-    override fun getFeedItems(now: Long): List<FeedItem> {
+    override suspend fun getFeedItems(): List<FeedItem> {
+        val now = System.currentTimeMillis()
         val user1 = UserSummary(
             id = 1,
             username = "kocicaszydelkowania56",
@@ -25,17 +26,21 @@ class MockFeedRepository : FeedRepository {
             avatarResId = android.R.drawable.ic_menu_edit
         )
 
+        val project1 = FeedItem.Project(
+            id = 100,
+            author = user2,
+            createdAt = now - 60 * 60 * 1000,
+            title = "Szal z gradientem",
+            content = "Wzór: prosty ścieg, ale kolory robią robotę.\nZajęło mi 3 wieczory.",
+            imageResId = android.R.drawable.ic_menu_gallery,
+            hookSize = "4.0 mm",
+            yarnType = "merino",
+            isSavedByMe = false,
+            isRebloggedByMe = false
+        )
+
         val items: List<FeedItem> = listOf(
-            FeedItem.Project(
-                id = 100,
-                author = user2,
-                createdAt = now - 60 * 60 * 1000,
-                title = "Szal z gradientem",
-                content = "Wzór: prosty ścieg, ale kolory robią robotę.\nZajęło mi 3 wieczory.",
-                imageResId = android.R.drawable.ic_menu_gallery,
-                hookSize = "4.0 mm",
-                yarnType = "merino",
-            ),
+            project1,
             FeedItem.Post(
                 id = 200,
                 author = user1,
@@ -52,16 +57,31 @@ class MockFeedRepository : FeedRepository {
                 imageResId = android.R.drawable.ic_menu_gallery,
                 timeToComplete = "2 dni",
                 yarnAmount = "~200 g",
+                isSavedByMe = true,
+                isRebloggedByMe = false
             ),
             FeedItem.Post(
                 id = 201,
                 author = user3,
                 createdAt = now - 8 * 60 * 60 * 1000,
-                content = "Piękny sweter w produkcji. Nie wiem jeszcze ile zajmie, ale będzie!",
-                imageResId = android.R.drawable.ic_menu_gallery,
+                content = "Fajny ten projekt Kasia!",
+                imageResId = null,
+                rebloggedProject = project1
             ),
         )
 
         return items.sortedByDescending { (it as FeedItem.Base).createdAt }
+    }
+
+    override suspend fun reblogProject(projectId: Long): Result<FeedItem.Post> {
+        return Result.failure(Exception("Mock reblog not implemented"))
+    }
+
+    override suspend fun saveProject(projectId: Long): Result<Unit> {
+        return Result.success(Unit)
+    }
+
+    override suspend fun unsaveProject(projectId: Long): Result<Unit> {
+        return Result.success(Unit)
     }
 }

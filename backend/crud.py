@@ -106,7 +106,6 @@ def search_users(db: Session, query: str, limit: int = 20) -> List[models.User]:
     return list(db.execute(stmt).scalars().all())
 
 
-# idk if i'll need this actually
 def get_profile_counts(db: Session, user_id: int) -> dict:
     followers_count = db.execute(
         select(func.count()).select_from(models.Follow).where(models.Follow.followee_id == user_id)

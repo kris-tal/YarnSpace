@@ -27,8 +27,8 @@ def register(payload: UserRegisterDTO, db: DbDep):
         password_hash=hash_password(payload.password),
         avatar_url=payload.avatarUrl,
     )
-
     token = create_access_token(user_id=user.id)
+
     return {
         "accessToken": token,
         "tokenType": "bearer",
@@ -38,8 +38,13 @@ def register(payload: UserRegisterDTO, db: DbDep):
 
 @router.post("/login", response_model=AuthResponseDTO)
 def login(form: Annotated[OAuth2PasswordRequestForm, Depends()], db: DbDep):
-    user = crud.authenticate_user(db, identifier=form.username, password=form.password)
+    user = crud.authenticate_user(
+        db,
+        identifier=form.username,
+        password=form.password
+    )
     token = create_access_token(user_id=user.id)
+
     return {
         "accessToken": token,
         "tokenType": "bearer",

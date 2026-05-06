@@ -76,7 +76,7 @@
     <string name="add_mode_post">Adding a post</string>
     <string name="add_mode_project">Adding a project</string>
 
-    <string name="add_hint_post_content">What is on your hook?</string>
+    <string name="add_hint_post_content">What\'s on your hook?</string>
     <string name="add_hint_project_title">Title</string>
     <string name="add_hint_project_content_optional">Description (optional)</string>
 
