@@ -9,14 +9,14 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.google.android.material.color.MaterialColors
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
-import com.yarnspace.app.feature.feed.data.RemoteFeedRepository
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ProjectDetailsFragment : Fragment() {
 
     companion object {
@@ -59,7 +59,7 @@ class ProjectDetailsFragment : Fragment() {
         }
     }
 
-    private lateinit var viewModel: FeedViewModel
+    private val viewModel: FeedViewModel by viewModels()
     private var isSaved: Boolean = false
     private var isReblogged: Boolean = false
     private lateinit var project: FeedItem.Project
@@ -85,12 +85,6 @@ class ProjectDetailsFragment : Fragment() {
             isRebloggedByMe = isReblogged
         )
 
-        val repository = RemoteFeedRepository(requireContext())
-        viewModel = ViewModelProvider(this, object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                return FeedViewModel(repository) as T
-            }
-        })[FeedViewModel::class.java]
     }
 
     override fun onCreateView(

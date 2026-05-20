@@ -65,3 +65,22 @@ http://localhost:8000/docs
 ```bash
 docker exec -it yarnspace_db psql -U $POSTGRES_USER -d $POSTGRES_DB -c "\\dt"
 ```
+
+---
+
+## Android app (development)
+
+### API base URL
+
+The Android app reads its backend URL from `BuildConfig.API_BASE_URL`.
+
+To override it locally, add this to your `local.properties`:
+
+```properties
+API_BASE_URL=http://10.0.2.2:8000/
+```
+
+Notes:
+- `10.0.2.2` is the special alias for reaching your host machine from the Android emulator.
+- The value should end with a trailing `/`!!!!
+

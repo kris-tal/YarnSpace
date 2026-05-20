@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.yarnspace.app.core.auth.SessionRepository
+import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import com.yarnspace.app.feature.add.presentation.AddFragment
 import com.yarnspace.app.feature.feed.presentation.FeedFragment
@@ -16,7 +17,10 @@ import com.yarnspace.app.main.NavigationController
 import com.yarnspace.app.main.SettingsPanelController
 import com.yarnspace.app.main.SettingsPanelRefs
 import com.yarnspace.app.theme.ThemeModeCoordinator
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -28,6 +32,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navigationController: NavigationController
     private val themeSettingsRepository by lazy { ThemeSettingsRepository(this) }
     private val sessionRepository by lazy { SessionRepository(this) }
+
+    @Inject
+    lateinit var apiService: ApiService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemeModeCoordinator.applySavedNightMode(this)
@@ -45,6 +52,7 @@ class MainActivity : AppCompatActivity() {
             refs = settingsRefs,
             themeSettingsRepository = themeSettingsRepository,
             sessionRepository = sessionRepository,
+            apiService = apiService,
             resources = resources,
             onLogout = ::logoutToAuth,
         )

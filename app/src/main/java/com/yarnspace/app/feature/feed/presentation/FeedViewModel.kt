@@ -4,11 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.feature.feed.data.FeedRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class FeedViewModel(private val repository: FeedRepository) : ViewModel() {
+@HiltViewModel
+class FeedViewModel @Inject constructor(
+    private val repository: FeedRepository,
+) : ViewModel() {
 
     private val _feedItems = MutableStateFlow<List<FeedItem>>(emptyList())
     val feedItems: StateFlow<List<FeedItem>> = _feedItems

@@ -9,28 +9,17 @@ import android.widget.TextView
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.search.SearchView
 import com.yarnspace.app.R
 import com.yarnspace.app.feature.profile.presentation.ProfileFragment
-import com.yarnspace.app.feature.search.data.RemoteUserRepository
-import com.yarnspace.app.core.network.RetrofitClient
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SearchFragment : Fragment() {
 
-    private val viewModel: SearchViewModel by viewModels {
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                val apiService = RetrofitClient.getInstance(requireContext())
-                val repository = RemoteUserRepository(apiService)
-                @Suppress("UNCHECKED_CAST")
-                return SearchViewModel(repository) as T
-            }
-        }
-    }
+    private val viewModel: SearchViewModel by viewModels()
 
     private lateinit var adapter: UserSearchAdapter
 

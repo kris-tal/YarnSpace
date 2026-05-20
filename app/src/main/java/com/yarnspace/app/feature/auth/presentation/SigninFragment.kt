@@ -14,10 +14,16 @@ import com.yarnspace.app.MainActivity
 import com.yarnspace.app.R
 import com.yarnspace.app.data.RegisterRequest
 import com.yarnspace.app.core.auth.TokenManager
-import com.yarnspace.app.core.network.RetrofitClient
+import com.yarnspace.app.core.network.ApiService
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SigninFragment : Fragment(R.layout.fragment_signin) {
+
+    @Inject
+    lateinit var apiService: ApiService
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -68,7 +74,6 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
                     displayName = username,
                     password = pass
                 )
-                val apiService = RetrofitClient.getInstance(requireContext())
                 val response = apiService.register(request)
 
                 TokenManager.saveToken(requireContext(), response.accessToken)

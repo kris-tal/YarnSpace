@@ -12,13 +12,19 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.yarnspace.app.R
+import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.remote.dto.PostCreateDto
 import com.yarnspace.app.data.remote.dto.ProjectCreateDto
-import com.yarnspace.app.core.network.RetrofitClient
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class AddFragment : Fragment(R.layout.fragment_add) {
+
+    @Inject
+    lateinit var apiService: ApiService
 
     companion object {
         // backend requires a non-null imageUrl for projects
@@ -205,8 +211,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             btnPublishPost.isEnabled = false
             lifecycleScope.launch {
                 try {
-                    val api = RetrofitClient.getInstance(requireContext())
-                    api.createPost(PostCreateDto(content = content, imageUrl = imageUrl))
+                    apiService.createPost(PostCreateDto(content = content, imageUrl = imageUrl))
                     Snackbar.make(view, getString(R.string.add_success_post_published), Snackbar.LENGTH_SHORT).show()
                     clearTab(Tab.POST)
                     navigateToProfile()
@@ -245,8 +250,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             btnPublishProject.isEnabled = false
             lifecycleScope.launch {
                 try {
-                    val api = RetrofitClient.getInstance(requireContext())
-                    api.createProject(payload)
+                    apiService.createProject(payload)
                     Snackbar.make(view, getString(R.string.add_success_project_published), Snackbar.LENGTH_SHORT).show()
                     clearTab(Tab.PROJECT)
                     navigateToProfile()

@@ -10,8 +10,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
@@ -25,16 +23,18 @@ import com.yarnspace.app.data.remote.dto.ProjectReadDto
 import com.yarnspace.app.data.remote.dto.UserPublicDto
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
-import com.yarnspace.app.core.network.RetrofitClient
-import com.yarnspace.app.feature.feed.data.RemoteFeedRepository
+import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.feature.feed.presentation.FeedAdapter
 import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ProfileFragment : Fragment() {
 
     private enum class ProfileMode { PRIVATE, PUBLIC }
@@ -83,14 +83,10 @@ class ProfileFragment : Fragment() {
 
     private val viewModel: ProfileViewModel by viewModels()
 
-    private val feedViewModel: FeedViewModel by viewModels {
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                @Suppress("UNCHECKED_CAST")
-                return FeedViewModel(RemoteFeedRepository(requireContext())) as T
-            }
-        }
-    }
+    private val feedViewModel: FeedViewModel by viewModels()
+
+    @Inject
+    lateinit var apiService: ApiService
 
     private lateinit var adapter: FeedAdapter
     private var profileMode: ProfileMode = ProfileMode.PRIVATE
@@ -220,7 +216,6 @@ class ProfileFragment : Fragment() {
 
             loadJob?.cancel()
             loadJob = viewLifecycleOwner.lifecycleScope.launch {
-                val apiService = RetrofitClient.getInstance(requireContext())
                 val me = try { apiService.getMe() } catch (_: Exception) { null }
 
                 val items: List<FeedItem> = try {
@@ -311,7 +306,6 @@ class ProfileFragment : Fragment() {
             btnFollow.isEnabled = false
             lifecycleScope.launch {
                 try {
-                    val apiService = RetrofitClient.getInstance(requireContext())
                     if (viewModel.isFollowedByMe) {
                         apiService.unfollowUser(username)
                         viewModel.isFollowedByMe = false
@@ -328,7 +322,6 @@ class ProfileFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            val apiService = RetrofitClient.getInstance(requireContext())
             val me = try { apiService.getMe() } catch (_: Exception) { null }
             val myUsername = me?.username
 

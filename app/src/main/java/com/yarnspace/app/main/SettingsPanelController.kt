@@ -9,8 +9,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.core.auth.SessionRepository
+import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
-import com.yarnspace.app.core.network.RetrofitClient
 import kotlinx.coroutines.launch
 
 class SettingsPanelController(
@@ -18,6 +18,7 @@ class SettingsPanelController(
     private val refs: SettingsPanelRefs,
     private val themeSettingsRepository: ThemeSettingsRepository,
     private val sessionRepository: SessionRepository,
+    private val apiService: ApiService,
     private val resources: Resources,
     private val onLogout: () -> Unit,
 ) {
@@ -57,7 +58,7 @@ class SettingsPanelController(
         refs.logoutButton.setOnClickListener {
             (context as? AppCompatActivity)?.lifecycleScope?.launch {
                 try {
-                    RetrofitClient.getInstance(context).logout()
+                    apiService.logout()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 } finally {

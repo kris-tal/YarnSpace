@@ -12,12 +12,18 @@ import com.google.android.material.textfield.TextInputEditText
 import com.yarnspace.app.MainActivity
 import com.yarnspace.app.R
 import com.yarnspace.app.core.auth.TokenManager
-import com.yarnspace.app.core.network.RetrofitClient
+import com.yarnspace.app.core.network.ApiService
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.lang.Exception
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class LoginFragment : Fragment(R.layout.fragment_login) {
+
+    @Inject
+    lateinit var apiService: ApiService
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -37,7 +43,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 else -> {
                     lifecycleScope.launch {
                         try {
-                            val apiService = RetrofitClient.getInstance(requireContext())
                             val authResponse = apiService.login(identifier, password)
                             TokenManager.saveToken(requireContext(), authResponse.accessToken)
                             startActivity(Intent(requireContext(), MainActivity::class.java))

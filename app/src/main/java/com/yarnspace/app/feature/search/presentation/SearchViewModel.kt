@@ -6,11 +6,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.feature.search.data.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SearchViewModel(private val repository: UserRepository) : ViewModel() {
+@HiltViewModel
+class SearchViewModel @Inject constructor(
+    private val repository: UserRepository,
+) : ViewModel() {
 
     private val _searchResults = MutableLiveData<List<UserSummary>>()
     val searchResults: LiveData<List<UserSummary>> = _searchResults

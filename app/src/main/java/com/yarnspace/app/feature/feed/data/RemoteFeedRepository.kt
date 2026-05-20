@@ -1,6 +1,5 @@
 package com.yarnspace.app.feature.feed.data
 
-import android.content.Context
 import com.google.gson.Gson
 import com.yarnspace.app.data.remote.dto.PostCreateDto
 import com.yarnspace.app.data.remote.dto.PostReadDto
@@ -8,16 +7,17 @@ import com.yarnspace.app.data.remote.dto.ProjectReadDto
 import com.yarnspace.app.data.remote.dto.UserPublicDto
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
-import com.yarnspace.app.core.network.RetrofitClient
+import com.yarnspace.app.core.network.ApiService
+import javax.inject.Inject
 
-class RemoteFeedRepository(private val context: Context) : FeedRepository {
-
-    private val gson = Gson()
+class RemoteFeedRepository @Inject constructor(
+    private val apiService: ApiService,
+    private val gson: Gson,
+) : FeedRepository {
 
     override suspend fun getFeedItems(): List<FeedItem> {
         return try {
-            val api = RetrofitClient.getInstance(context)
-            val jsonElements = api.getGlobalFeed()
+            val jsonElements = apiService.getGlobalFeed()
 
             jsonElements.mapNotNull { element ->
                 val obj = element.asJsonObject
@@ -39,8 +39,7 @@ class RemoteFeedRepository(private val context: Context) : FeedRepository {
 
     override suspend fun reblogProject(projectId: Long): Result<FeedItem.Post> {
         return try {
-            val api = RetrofitClient.getInstance(context)
-            val response = api.createPost(PostCreateDto(rebloggedProjectId = projectId))
+            val response = apiService.createPost(PostCreateDto(rebloggedProjectId = projectId))
             Result.success(response.toFeedItemPost())
         } catch (e: Exception) {
             Result.failure(e)
@@ -49,7 +48,7 @@ class RemoteFeedRepository(private val context: Context) : FeedRepository {
 
     override suspend fun saveProject(projectId: Long): Result<Unit> {
         return try {
-            RetrofitClient.getInstance(context).saveProject(projectId)
+            apiService.saveProject(projectId)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -58,7 +57,7 @@ class RemoteFeedRepository(private val context: Context) : FeedRepository {
 
     override suspend fun unsaveProject(projectId: Long): Result<Unit> {
         return try {
-            RetrofitClient.getInstance(context).unsaveProject(projectId)
+            apiService.unsaveProject(projectId)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
