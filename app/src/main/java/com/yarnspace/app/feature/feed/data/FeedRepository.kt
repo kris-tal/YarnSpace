@@ -1,0 +1,11 @@
+package com.yarnspace.app.feature.feed.data
+
+import com.yarnspace.app.core.model.FeedItem
+
+interface FeedRepository {
+    suspend fun getFeedItems(): List<FeedItem>
+    suspend fun reblogProject(projectId: Long): Result<FeedItem.Post>
+    suspend fun saveProject(projectId: Long): Result<Unit>
+    suspend fun unsaveProject(projectId: Long): Result<Unit>
+}
+

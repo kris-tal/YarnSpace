@@ -7,10 +7,10 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
-import com.yarnspace.app.data.TokenManager
-import com.yarnspace.app.data.session.SessionRepository
+import com.yarnspace.app.core.auth.TokenManager
+import com.yarnspace.app.core.auth.SessionRepository
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
-import com.yarnspace.app.retrofit.RetrofitClient
+import com.yarnspace.app.core.network.RetrofitClient
 import kotlinx.coroutines.launch
 
 class SettingsPanelController(

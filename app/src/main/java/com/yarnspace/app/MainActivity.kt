@@ -5,8 +5,13 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.yarnspace.app.data.session.SessionRepository
+import com.yarnspace.app.core.auth.SessionRepository
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
+import com.yarnspace.app.feature.add.presentation.AddFragment
+import com.yarnspace.app.feature.feed.presentation.FeedFragment
+import com.yarnspace.app.feature.notifs.presentation.NotifsFragment
+import com.yarnspace.app.feature.profile.presentation.ProfileFragment
+import com.yarnspace.app.feature.search.presentation.SearchFragment
 import com.yarnspace.app.main.NavigationController
 import com.yarnspace.app.main.SettingsPanelController
 import com.yarnspace.app.main.SettingsPanelRefs

@@ -2,6 +2,7 @@ package com.yarnspace.app
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.yarnspace.app.feature.auth.presentation.LoginFragment
 
 class AuthActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
