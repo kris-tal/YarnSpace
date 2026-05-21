@@ -5,8 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.feature.feed.data.FeedRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,11 +19,20 @@ class FeedViewModel @Inject constructor(
     private val repository: FeedRepository,
 ) : ViewModel() {
 
-    private val _feedItems = MutableStateFlow<List<FeedItem>>(emptyList())
-    val feedItems: StateFlow<List<FeedItem>> = _feedItems
+    data class FeedUiState(
+        val items: List<FeedItem> = emptyList(),
+        val isLoading: Boolean = false,
+    )
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
+    sealed interface FeedUiEvent {
+        data class Error(val message: String) : FeedUiEvent
+    }
+
+    private val _uiState = MutableStateFlow(FeedUiState())
+    val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<FeedUiEvent>(extraBufferCapacity = 1)
+    val events: SharedFlow<FeedUiEvent> = _events.asSharedFlow()
 
     init {
         refreshFeed()
@@ -27,13 +40,14 @@ class FeedViewModel @Inject constructor(
 
     fun refreshFeed() {
         viewModelScope.launch {
-            _isLoading.value = true
+            _uiState.value = _uiState.value.copy(isLoading = true)
             try {
-                _feedItems.value = repository.getFeedItems()
+                _uiState.value = _uiState.value.copy(items = repository.getFeedItems())
             } catch (e: Exception) {
                 e.printStackTrace()
+                _events.tryEmit(FeedUiEvent.Error(e.message ?: "Failed to load feed"))
             } finally {
-                _isLoading.value = false
+                _uiState.value = _uiState.value.copy(isLoading = false)
             }
         }
     }
@@ -64,27 +78,31 @@ class FeedViewModel @Inject constructor(
     }
 
     private fun updateProjectSavedState(projectId: Long, isSaved: Boolean) {
-        _feedItems.value = _feedItems.value.map { item ->
-            when (item) {
-                is FeedItem.Project -> if (item.id == projectId) item.copy(isSavedByMe = isSaved) else item
-                is FeedItem.Post -> if (item.rebloggedProject?.id == projectId) {
-                    item.copy(rebloggedProject = item.rebloggedProject.copy(isSavedByMe = isSaved))
-                } else item
-                else -> item
+        _uiState.value = _uiState.value.copy(
+            items = _uiState.value.items.map { item ->
+                when (item) {
+                    is FeedItem.Project -> if (item.id == projectId) item.copy(isSavedByMe = isSaved) else item
+                    is FeedItem.Post -> if (item.rebloggedProject?.id == projectId) {
+                        item.copy(rebloggedProject = item.rebloggedProject.copy(isSavedByMe = isSaved))
+                    } else item
+                    else -> item
+                }
             }
-        }
+        )
     }
 
     private fun updateProjectRebloggedState(projectId: Long, isReblogged: Boolean) {
-        _feedItems.value = _feedItems.value.map { item ->
-            when (item) {
-                is FeedItem.Project -> if (item.id == projectId) item.copy(isRebloggedByMe = isReblogged) else item
-                is FeedItem.Post -> if (item.rebloggedProject?.id == projectId) {
-                    item.copy(rebloggedProject = item.rebloggedProject.copy(isRebloggedByMe = isReblogged))
-                } else item
-                else -> item
+        _uiState.value = _uiState.value.copy(
+            items = _uiState.value.items.map { item ->
+                when (item) {
+                    is FeedItem.Project -> if (item.id == projectId) item.copy(isRebloggedByMe = isReblogged) else item
+                    is FeedItem.Post -> if (item.rebloggedProject?.id == projectId) {
+                        item.copy(rebloggedProject = item.rebloggedProject.copy(isRebloggedByMe = isReblogged))
+                    } else item
+                    else -> item
+                }
             }
-        }
+        )
     }
 }
 

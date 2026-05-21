@@ -6,9 +6,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.yarnspace.app.R
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -45,8 +48,22 @@ class FeedFragment : Fragment() {
         view.findViewById<RecyclerView>(R.id.rvFeed).adapter = adapter
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.feedItems.collect { items ->
-                adapter.submitList(items)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.uiState.collect { state ->
+                        adapter.submitList(state.items)
+                    }
+                }
+
+                launch {
+                    viewModel.events.collect { event ->
+                        when (event) {
+                            is FeedViewModel.FeedUiEvent.Error -> {
+                                Snackbar.make(view, event.message, Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
             }
         }
 

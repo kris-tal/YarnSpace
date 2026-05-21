@@ -2,6 +2,8 @@ package com.yarnspace.app.di
 
 import com.yarnspace.app.feature.feed.data.FeedRepository
 import com.yarnspace.app.feature.feed.data.RemoteFeedRepository
+import com.yarnspace.app.feature.profile.data.ProfileRepository
+import com.yarnspace.app.feature.profile.data.RemoteProfileRepository
 import com.yarnspace.app.feature.search.data.RemoteUserRepository
 import com.yarnspace.app.feature.search.data.UserRepository
 import dagger.Binds
@@ -21,5 +23,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserRepository(impl: RemoteUserRepository): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindProfileRepository(impl: RemoteProfileRepository): ProfileRepository
 }
+
 

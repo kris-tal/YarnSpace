@@ -9,12 +9,17 @@ import android.widget.TextView
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.search.SearchView
 import com.yarnspace.app.R
 import com.yarnspace.app.feature.profile.presentation.ProfileFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class SearchFragment : Fragment() {
@@ -76,26 +81,43 @@ class SearchFragment : Fragment() {
             }
         }
 
-        viewModel.searchResults.observe(viewLifecycleOwner) { results ->
-            adapter.submitList(results)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.uiState.collect { state ->
+                        val results = state.results
+                        adapter.submitList(results)
 
-            val queryText = searchView.editText.text.toString()
-            val sanitizedQuery = queryText.trim().removePrefix("@")
+                        val sanitizedQuery = state.query.trim().removePrefix("@")
+                        when {
+                            sanitizedQuery.isEmpty() -> {
+                                emptyStateText.visibility = View.VISIBLE
+                                emptyStateText.setText(R.string.search_empty_state)
+                                recyclerView.visibility = View.GONE
+                            }
 
-            when {
-                sanitizedQuery.isEmpty() -> {
-                    emptyStateText.visibility = View.VISIBLE
-                    emptyStateText.setText(R.string.search_empty_state)
-                    recyclerView.visibility = View.GONE
+                            results.isEmpty() -> {
+                                emptyStateText.visibility = View.VISIBLE
+                                emptyStateText.text = getString(R.string.search_no_results, sanitizedQuery)
+                                recyclerView.visibility = View.GONE
+                            }
+
+                            else -> {
+                                emptyStateText.visibility = View.GONE
+                                recyclerView.visibility = View.VISIBLE
+                            }
+                        }
+                    }
                 }
-                results.isEmpty() -> {
-                    emptyStateText.visibility = View.VISIBLE
-                    emptyStateText.text = getString(R.string.search_no_results, sanitizedQuery)
-                    recyclerView.visibility = View.GONE
-                }
-                else -> {
-                    emptyStateText.visibility = View.GONE
-                    recyclerView.visibility = View.VISIBLE
+
+                launch {
+                    viewModel.events.collect { event ->
+                        when (event) {
+                            is SearchViewModel.SearchUiEvent.Error -> {
+                                Snackbar.make(view, event.message, Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
                 }
             }
         }

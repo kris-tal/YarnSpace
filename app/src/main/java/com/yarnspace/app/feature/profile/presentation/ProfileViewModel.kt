@@ -1,28 +1,218 @@
 package com.yarnspace.app.feature.profile.presentation
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
+import com.yarnspace.app.feature.profile.data.ProfileRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ProfileViewModel : ViewModel() {
-    var profile: ProfilePublicDto? = null
-    var posts: List<FeedItem> = emptyList()
-    var projects: List<FeedItem> = emptyList()
-    var saved: List<FeedItem> = emptyList()
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val repository: ProfileRepository,
+) : ViewModel() {
 
-    var viewingUsername: String? = null
-    var isFollowedByMe: Boolean = false
+    enum class ProfileMode { PRIVATE, PUBLIC }
+    enum class Tab { POSTS, PROJECTS, SAVED }
 
-    val loadedTabs = mutableSetOf<ProfileTab>()
+    data class ProfileUiState(
+        val mode: ProfileMode = ProfileMode.PRIVATE,
+        val viewingUsername: String? = null,
+        val viewingSelf: Boolean = false,
+        val profile: ProfilePublicDto? = null,
+        val isFollowedByMe: Boolean = false,
+        val followInProgress: Boolean = false,
 
-    enum class ProfileTab { POSTS, PROJECTS, SAVED }
+        val selectedTab: Tab = Tab.POSTS,
+        val tabItems: Map<Tab, List<FeedItem>> = emptyMap(),
+        val loadedTabs: Set<Tab> = emptySet(),
 
-    fun clearCache() {
-        profile = null
-        posts = emptyList()
-        projects = emptyList()
-        saved = emptyList()
-        loadedTabs.clear()
+        val isLoadingProfile: Boolean = false,
+        val isLoadingTab: Boolean = false,
+    ) {
+        val currentItems: List<FeedItem>
+            get() = tabItems[selectedTab].orEmpty()
+    }
+
+    sealed interface ProfileUiEvent {
+        data class ShowSnackbar(val message: String) : ProfileUiEvent
+    }
+
+    private val _uiState = MutableStateFlow(ProfileUiState())
+    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<ProfileUiEvent>(extraBufferCapacity = 1)
+    val events: SharedFlow<ProfileUiEvent> = _events.asSharedFlow()
+
+    private var initialized = false
+
+    fun initialize(
+        requestedUsername: String?,
+        forceMe: Boolean,
+        initialTab: Tab,
+    ) {
+        if (initialized) {
+            onTabSelected(initialTab)
+            return
+        }
+        initialized = true
+
+        _uiState.value = _uiState.value.copy(selectedTab = initialTab)
+        loadProfile(requestedUsername = requestedUsername, forceMe = forceMe)
+    }
+
+    fun onTabSelected(tab: Tab, force: Boolean = false) {
+        loadTab(tab = tab, force = force)
+    }
+
+    fun refreshCurrentTab() {
+        loadTab(tab = _uiState.value.selectedTab, force = true)
+    }
+
+    fun onFollowClicked() {
+        val username = _uiState.value.viewingUsername ?: return
+        if (_uiState.value.mode != ProfileMode.PUBLIC || _uiState.value.viewingSelf) return
+        if (_uiState.value.followInProgress) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(followInProgress = true)
+            try {
+                if (_uiState.value.isFollowedByMe) {
+                    repository.unfollowUser(username)
+                    _uiState.value = _uiState.value.copy(isFollowedByMe = false)
+                } else {
+                    repository.followUser(username)
+                    _uiState.value = _uiState.value.copy(isFollowedByMe = true)
+                }
+            } catch (e: Exception) {
+                _events.tryEmit(ProfileUiEvent.ShowSnackbar(e.message ?: "Failed to update follow state"))
+            } finally {
+                _uiState.value = _uiState.value.copy(followInProgress = false)
+            }
+        }
+    }
+
+    private fun loadProfile(requestedUsername: String?, forceMe: Boolean) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingProfile = true)
+
+            val me = repository.getMeOrNull()
+            val myUsername = me?.username
+
+            val resolvedMode = when {
+                forceMe -> ProfileMode.PRIVATE
+                requestedUsername.isNullOrBlank() -> ProfileMode.PRIVATE
+                else -> ProfileMode.PUBLIC
+            }
+
+            val viewingSelf = !myUsername.isNullOrBlank() &&
+                (requestedUsername == myUsername || resolvedMode == ProfileMode.PRIVATE)
+            val finalUsername = if (resolvedMode == ProfileMode.PRIVATE) myUsername else requestedUsername
+
+            if (finalUsername.isNullOrBlank()) {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingProfile = false,
+                    mode = resolvedMode,
+                    viewingSelf = viewingSelf,
+                    viewingUsername = null,
+                    profile = null,
+                )
+                _events.tryEmit(ProfileUiEvent.ShowSnackbar("Unable to resolve username"))
+                return@launch
+            }
+
+            if (_uiState.value.viewingUsername == finalUsername && _uiState.value.profile != null) {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingProfile = false,
+                    mode = resolvedMode,
+                    viewingSelf = viewingSelf,
+                )
+                loadTab(_uiState.value.selectedTab, force = false)
+                return@launch
+            }
+
+            _uiState.value = _uiState.value.copy(
+                mode = resolvedMode,
+                viewingUsername = finalUsername,
+                viewingSelf = viewingSelf,
+                profile = null,
+                isFollowedByMe = false,
+                tabItems = emptyMap(),
+                loadedTabs = emptySet(),
+            )
+
+            try {
+                val profile = repository.getProfile(finalUsername)
+                _uiState.value = _uiState.value.copy(
+                    isLoadingProfile = false,
+                    profile = profile,
+                    isFollowedByMe = if (resolvedMode == ProfileMode.PUBLIC) (profile.isFollowedByMe ?: false) else false,
+                )
+                loadTab(_uiState.value.selectedTab, force = false)
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoadingProfile = false,
+                    profile = null,
+                )
+                _events.tryEmit(ProfileUiEvent.ShowSnackbar(e.message ?: "Error loading profile"))
+            }
+        }
+    }
+
+    private fun loadTab(tab: Tab, force: Boolean) {
+        val username = _uiState.value.viewingUsername
+        if (username.isNullOrBlank()) {
+            _uiState.value = _uiState.value.copy(selectedTab = tab)
+            return
+        }
+
+        _uiState.value = _uiState.value.copy(selectedTab = tab)
+
+        if (!force && _uiState.value.loadedTabs.contains(tab)) return
+
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoadingTab = true)
+
+            val items: List<FeedItem> = try {
+                when (tab) {
+                    Tab.POSTS -> coroutineScope {
+                        val posts = async { repository.listUserPosts(username) }
+                        val projects = async { repository.listUserProjects(username) }
+                        posts.await() + projects.await()
+                    }
+
+                    Tab.PROJECTS -> repository.listUserProjects(username)
+                    Tab.SAVED -> repository.listMySavedProjects()
+                }
+            } catch (e: Exception) {
+                _events.tryEmit(ProfileUiEvent.ShowSnackbar(e.message ?: "Error loading tab"))
+                emptyList()
+            }
+
+            val sorted = items
+                .mapNotNull { it as? FeedItem.Base }
+                .sortedByDescending { it.createdAt }
+                .map { it as FeedItem }
+
+            val newTabItems = _uiState.value.tabItems.toMutableMap().apply { put(tab, sorted) }
+            val newLoadedTabs = _uiState.value.loadedTabs.toMutableSet().apply { add(tab) }
+
+            _uiState.value = _uiState.value.copy(
+                isLoadingTab = false,
+                tabItems = newTabItems,
+                loadedTabs = newLoadedTabs,
+            )
+        }
     }
 }
 

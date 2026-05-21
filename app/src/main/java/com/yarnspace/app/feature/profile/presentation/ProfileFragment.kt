@@ -10,35 +10,26 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.yarnspace.app.R
-import com.yarnspace.app.data.remote.dto.PostReadDto
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
-import com.yarnspace.app.data.remote.dto.ProjectReadDto
-import com.yarnspace.app.data.remote.dto.UserPublicDto
-import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
-import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.feature.feed.presentation.FeedAdapter
 import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
 
-    private enum class ProfileMode { PRIVATE, PUBLIC }
-    private enum class Tab { POSTS, PROJECTS, SAVED }
 
     companion object {
         private const val ARG_USERNAME = "arg_username"
@@ -85,12 +76,8 @@ class ProfileFragment : Fragment() {
 
     private val feedViewModel: FeedViewModel by viewModels()
 
-    @Inject
-    lateinit var apiService: ApiService
-
     private lateinit var adapter: FeedAdapter
-    private var profileMode: ProfileMode = ProfileMode.PRIVATE
-    private var loadJob: Job? = null
+    private var profileMode: ProfileViewModel.ProfileMode = ProfileViewModel.ProfileMode.PRIVATE
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -144,10 +131,10 @@ class ProfileFragment : Fragment() {
             styleTabButton(btnSaved, selected = checkedId == R.id.profile_filter_saved)
         }
 
-        fun configureUiForMode(mode: ProfileMode, isViewingSelf: Boolean = false) {
+        fun configureUiForMode(mode: ProfileViewModel.ProfileMode, isViewingSelf: Boolean = false) {
             profileMode = mode
             when (mode) {
-                ProfileMode.PRIVATE -> {
+                ProfileViewModel.ProfileMode.PRIVATE -> {
                     btnBack.visibility = View.GONE
                     btnEdit.visibility = View.VISIBLE
                     btnFollow.visibility = View.GONE
@@ -155,7 +142,7 @@ class ProfileFragment : Fragment() {
                     savedCountGroup.visibility = View.GONE
                     btnFollow.alpha = 1.0f
                 }
-                ProfileMode.PUBLIC -> {
+                ProfileViewModel.ProfileMode.PUBLIC -> {
                     btnBack.visibility = View.VISIBLE
 
                     btnEdit.visibility = View.GONE
@@ -182,75 +169,24 @@ class ProfileFragment : Fragment() {
             tvSavedCount.text = profile.savedProjectsCount.toString()
         }
 
-        fun updateFollowButton() {
-            if (profileMode == ProfileMode.PUBLIC && btnFollow.visibility == View.VISIBLE) {
-                btnFollow.text = if (viewModel.isFollowedByMe) getString(R.string.profile_unfollow) else getString(R.string.profile_follow)
+        fun updateFollowButton(isFollowedByMe: Boolean) {
+            if (profileMode == ProfileViewModel.ProfileMode.PUBLIC && btnFollow.visibility == View.VISIBLE) {
+                btnFollow.text = if (isFollowedByMe) getString(R.string.profile_unfollow) else getString(R.string.profile_follow)
             }
         }
 
-        fun currentTab(): Tab {
+        fun currentTab(): ProfileViewModel.Tab {
             return when (toggleGroup.checkedButtonId) {
-                R.id.profile_filter_projects -> Tab.PROJECTS
-                R.id.profile_filter_saved -> Tab.SAVED
-                else -> Tab.POSTS
-            }
-        }
-
-        fun loadTab(tab: Tab, force: Boolean = false) {
-            val username = viewModel.viewingUsername ?: return
-            val pTab = when(tab) {
-                Tab.POSTS -> ProfileViewModel.ProfileTab.POSTS
-                Tab.PROJECTS -> ProfileViewModel.ProfileTab.PROJECTS
-                Tab.SAVED -> ProfileViewModel.ProfileTab.SAVED
-            }
-
-            if (!force && viewModel.loadedTabs.contains(pTab)) {
-                val cached = when(tab) {
-                    Tab.POSTS -> viewModel.posts
-                    Tab.PROJECTS -> viewModel.projects
-                    Tab.SAVED -> viewModel.saved
-                }
-                adapter.submitList(cached)
-                return
-            }
-
-            loadJob?.cancel()
-            loadJob = viewLifecycleOwner.lifecycleScope.launch {
-                val me = try { apiService.getMe() } catch (_: Exception) { null }
-
-                val items: List<FeedItem> = try {
-                    when (tab) {
-                        Tab.POSTS -> coroutineScope {
-                            val posts = async { apiService.listUserPosts(username).map { it.toFeedItemPost() } }
-                            val projects = async { apiService.listUserProjects(username).map { it.toFeedItemProject() } }
-                            posts.await() + projects.await()
-                        }
-                        Tab.PROJECTS -> apiService.listUserProjects(username).map { it.toFeedItemProject() }
-                        Tab.SAVED -> apiService.listMySavedProjects().map { it.toFeedItemProject() }
-                    }
-                } catch (_: Exception) {
-                    emptyList()
-                }
-
-                val sorted = items
-                    .mapNotNull { it as? FeedItem.Base }
-                    .sortedByDescending { it.createdAt }
-                    .map { it as FeedItem }
-
-                when(tab) {
-                    Tab.POSTS -> viewModel.posts = sorted
-                    Tab.PROJECTS -> viewModel.projects = sorted
-                    Tab.SAVED -> viewModel.saved = sorted
-                }
-                viewModel.loadedTabs.add(pTab)
-                adapter.submitList(sorted)
+                R.id.profile_filter_projects -> ProfileViewModel.Tab.PROJECTS
+                R.id.profile_filter_saved -> ProfileViewModel.Tab.SAVED
+                else -> ProfileViewModel.Tab.POSTS
             }
         }
 
         val args = arguments
         val requestedUsername = args?.getString(ARG_USERNAME)
         val forceMe = args?.getBoolean(ARG_FORCE_ME, false) ?: false
-        val initialMode = if (forceMe || requestedUsername == null) ProfileMode.PRIVATE else ProfileMode.PUBLIC
+        val initialMode = if (forceMe || requestedUsername == null) ProfileViewModel.ProfileMode.PRIVATE else ProfileViewModel.ProfileMode.PUBLIC
         configureUiForMode(initialMode)
 
         arguments?.let { a ->
@@ -270,11 +206,11 @@ class ProfileFragment : Fragment() {
             },
             onReblogClick = { project ->
                 feedViewModel.reblogProject(project)
-                if (currentTab() == Tab.POSTS) loadTab(Tab.POSTS, force = true)
+                if (currentTab() == ProfileViewModel.Tab.POSTS) viewModel.onTabSelected(ProfileViewModel.Tab.POSTS, force = true)
             },
             onSaveClick = { project ->
                 feedViewModel.toggleSaveProject(project)
-                if (currentTab() == Tab.SAVED) loadTab(Tab.SAVED, force = true)
+                if (currentTab() == ProfileViewModel.Tab.SAVED) viewModel.onTabSelected(ProfileViewModel.Tab.SAVED, force = true)
             }
         )
         view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter
@@ -292,123 +228,63 @@ class ProfileFragment : Fragment() {
         toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
             when (checkedId) {
-                R.id.profile_filter_posts -> loadTab(Tab.POSTS)
-                R.id.profile_filter_projects -> loadTab(Tab.PROJECTS)
-                R.id.profile_filter_saved -> if (profileMode == ProfileMode.PRIVATE) loadTab(Tab.SAVED)
+                R.id.profile_filter_posts -> viewModel.onTabSelected(ProfileViewModel.Tab.POSTS)
+                R.id.profile_filter_projects -> viewModel.onTabSelected(ProfileViewModel.Tab.PROJECTS)
+                R.id.profile_filter_saved -> if (profileMode == ProfileViewModel.ProfileMode.PRIVATE) viewModel.onTabSelected(ProfileViewModel.Tab.SAVED)
             }
             applyTabStyles()
         }
 
         btnFollow.setOnClickListener {
-            val username = viewModel.viewingUsername ?: return@setOnClickListener
-            if (profileMode != ProfileMode.PUBLIC) return@setOnClickListener
+            viewModel.onFollowClicked()
+        }
 
-            btnFollow.isEnabled = false
-            lifecycleScope.launch {
-                try {
-                    if (viewModel.isFollowedByMe) {
-                        apiService.unfollowUser(username)
-                        viewModel.isFollowedByMe = false
-                    } else {
-                        apiService.followUser(username)
-                        viewModel.isFollowedByMe = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.uiState.collect { state ->
+                        configureUiForMode(state.mode, state.viewingSelf)
+
+                        btnFollow.isEnabled = state.mode == ProfileViewModel.ProfileMode.PUBLIC && !state.viewingSelf && !state.followInProgress
+                        btnFollow.alpha = if (state.mode == ProfileViewModel.ProfileMode.PUBLIC && state.viewingSelf) 0.5f else 1.0f
+
+                        val profile = state.profile
+                        if (profile != null) {
+                            tvDisplayName.text = profile.displayName
+                            tvUsername.text = getString(R.string.username_format, profile.username)
+                            updateCounts(profile)
+                        } else if (!state.isLoadingProfile) {
+                            tvDisplayName.text = getString(R.string.error_loading_profile)
+                        }
+
+                        if (state.mode == ProfileViewModel.ProfileMode.PUBLIC) {
+                            updateFollowButton(state.isFollowedByMe)
+                            if (toggleGroup.checkedButtonId == R.id.profile_filter_saved) {
+                                toggleGroup.check(R.id.profile_filter_posts)
+                            }
+                        }
+
+                        adapter.submitList(state.currentItems)
+                        applyTabStyles()
                     }
-                    updateFollowButton()
-                } catch (_: Exception) {
-                } finally {
-                    btnFollow.isEnabled = true
+                }
+
+                launch {
+                    viewModel.events.collect { event ->
+                        when (event) {
+                            is ProfileViewModel.ProfileUiEvent.ShowSnackbar -> {
+                                Snackbar.make(view, event.message, Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
                 }
             }
         }
 
-        lifecycleScope.launch {
-            val me = try { apiService.getMe() } catch (_: Exception) { null }
-            val myUsername = me?.username
-
-            val resolvedMode = when {
-                forceMe -> ProfileMode.PRIVATE
-                requestedUsername.isNullOrBlank() -> ProfileMode.PRIVATE
-                else -> ProfileMode.PUBLIC
-            }
-            val viewingSelf = !myUsername.isNullOrBlank() && (requestedUsername == myUsername || resolvedMode == ProfileMode.PRIVATE)
-
-            val finalUsername = if (resolvedMode == ProfileMode.PRIVATE) myUsername else requestedUsername
-
-            if (viewModel.viewingUsername == finalUsername && viewModel.profile != null) {
-                configureUiForMode(resolvedMode, viewingSelf)
-                val profile = viewModel.profile!!
-                tvDisplayName.text = profile.displayName
-                tvUsername.text = getString(R.string.username_format, profile.username)
-                updateCounts(profile)
-                if (profileMode == ProfileMode.PUBLIC) updateFollowButton()
-                loadTab(currentTab())
-                return@launch
-            }
-
-            viewModel.clearCache()
-            viewModel.viewingUsername = finalUsername
-            configureUiForMode(resolvedMode, viewingSelf)
-
-            val usernameToLoad = viewModel.viewingUsername
-            if (usernameToLoad.isNullOrBlank()) {
-                tvDisplayName.text = getString(R.string.error_loading_profile)
-                return@launch
-            }
-
-            try {
-                val profile = apiService.getPublicProfile(usernameToLoad)
-                viewModel.profile = profile
-                tvDisplayName.text = profile.displayName
-                tvUsername.text = getString(R.string.username_format, profile.username)
-                updateCounts(profile)
-                if (profileMode == ProfileMode.PUBLIC) {
-                    viewModel.isFollowedByMe = profile.isFollowedByMe ?: false
-                    updateFollowButton()
-                }
-                loadTab(currentTab())
-            } catch (_: Exception) {
-                tvDisplayName.text = getString(R.string.error_loading_profile)
-            }
-        }
-    }
-
-    private fun UserPublicDto.toUserSummary(): UserSummary {
-        return UserSummary(
-            id = id.toLong(),
-            username = username,
-            displayName = displayName,
-            avatarUrl = avatarUrl,
-            accentColor = accentColor,
-        )
-    }
-
-    private fun PostReadDto.toFeedItemPost(): FeedItem.Post {
-        return FeedItem.Post(
-            id = id.toLong(),
-            author = author.toUserSummary(),
-            createdAt = createdAt,
-            content = content,
-            imageUrl = imageUrl,
-            rebloggedProject = rebloggedProject?.toFeedItemProject()
-        )
-    }
-
-    private fun ProjectReadDto.toFeedItemProject(): FeedItem.Project {
-        return FeedItem.Project(
-            id = id.toLong(),
-            author = author.toUserSummary(),
-            createdAt = createdAt,
-            title = title,
-            content = content,
-            imageUrl = imageUrl,
-            hookSize = hookSize,
-            pattern = pattern,
-            yarnType = yarnType,
-            yarnAmount = yarnAmount,
-            timeToComplete = timeToComplete,
-            additionalMaterials = additionalMaterials,
-            isSavedByMe = isSavedByMe ?: false,
-            isRebloggedByMe = isRebloggedByMe ?: false
+        viewModel.initialize(
+            requestedUsername = requestedUsername,
+            forceMe = forceMe,
+            initialTab = currentTab(),
         )
     }
 }
