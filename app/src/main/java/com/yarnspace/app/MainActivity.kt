@@ -16,6 +16,7 @@ import com.yarnspace.app.feature.search.presentation.SearchFragment
 import com.yarnspace.app.main.NavigationController
 import com.yarnspace.app.main.SettingsPanelController
 import com.yarnspace.app.main.SettingsPanelRefs
+import com.yarnspace.app.theme.AccentThemeCoordinator
 import com.yarnspace.app.theme.ThemeModeCoordinator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -30,15 +31,27 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var settingsController: SettingsPanelController
     private lateinit var navigationController: NavigationController
-    private val themeSettingsRepository by lazy { ThemeSettingsRepository(this) }
+
+    @Inject
+    lateinit var themeSettingsRepository: ThemeSettingsRepository
+
+    @Inject
+    lateinit var themeModeCoordinator: ThemeModeCoordinator
+
+    @Inject
+    lateinit var accentThemeCoordinator: AccentThemeCoordinator
+
     private val sessionRepository by lazy { SessionRepository(this) }
 
     @Inject
     lateinit var apiService: ApiService
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        ThemeModeCoordinator.applySavedNightMode(this)
         super.onCreate(savedInstanceState)
+
+        themeModeCoordinator.applySavedNightMode()
+        accentThemeCoordinator.applySavedAccent(this)
+
         setContentView(R.layout.activity_main)
 
         val isSettingsOpen = savedInstanceState?.getBoolean(STATE_SETTINGS_OPEN, false) ?: false

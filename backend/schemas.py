@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, AliasChoices, field_validator
@@ -145,4 +146,32 @@ class AuthResponseDTO(TokenDTO):
 
 
 class AccentColorUpdateDTO(BaseModel):
-    accentColor: str
+    accentColor: "AccentColorEnum"
+
+
+class AccentColorEnum(str, Enum):
+    sage = "sage"
+    peach = "peach"
+    lavender = "lavender"
+    yellow = "yellow"
+    pink = "pink"
+    blue = "blue"
+
+
+class ProfileUpdateDTO(BaseModel):
+    display_name: Optional[str] = Field(
+        default=None,
+        min_length=1,
+        max_length=50,
+        validation_alias=AliasChoices("displayName", "display_name"),
+        serialization_alias="displayName",
+    )
+    accentColor: Optional[AccentColorEnum] = Field(
+        default=None,
+        validation_alias=AliasChoices("accent_color", "accentColor"),
+    )
+    avatarUrl: Optional[str] = Field(
+        default=None,
+        max_length=500,
+        validation_alias=AliasChoices("avatar_url", "avatarUrl"),
+    )

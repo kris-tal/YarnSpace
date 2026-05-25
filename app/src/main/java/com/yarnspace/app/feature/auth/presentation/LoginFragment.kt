@@ -13,6 +13,7 @@ import com.yarnspace.app.MainActivity
 import com.yarnspace.app.R
 import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.core.network.ApiService
+import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -24,6 +25,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     @Inject
     lateinit var apiService: ApiService
+
+    @Inject
+    lateinit var themeSettingsRepository: ThemeSettingsRepository
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -45,6 +49,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                         try {
                             val authResponse = apiService.login(identifier, password)
                             TokenManager.saveToken(requireContext(), authResponse.accessToken)
+
+                            themeSettingsRepository.setAccentColorName(authResponse.user.accentColor)
+
                             startActivity(Intent(requireContext(), MainActivity::class.java))
                             requireActivity().finish()
                         } catch (e: Exception) {
@@ -70,4 +77,3 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         }
     }
 }
-

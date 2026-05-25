@@ -28,6 +28,38 @@
 
     <style name="Theme.YarnSpace" parent="Base.Theme.YarnSpace" />
 
+    <style name="ThemeOverlay.YarnSpace.Accent" parent="" />
+
+    <style name="ThemeOverlay.YarnSpace.Accent.Sage" parent="ThemeOverlay.YarnSpace.Accent">
+        <item name="colorPrimary">@color/accent_sage_night</item>
+        <item name="colorPrimaryContainer">@color/accent_sage_night</item>
+    </style>
+
+    <style name="ThemeOverlay.YarnSpace.Accent.Peach" parent="ThemeOverlay.YarnSpace.Accent">
+        <item name="colorPrimary">@color/accent_peach_night</item>
+        <item name="colorPrimaryContainer">@color/accent_peach_night</item>
+    </style>
+
+    <style name="ThemeOverlay.YarnSpace.Accent.Lavender" parent="ThemeOverlay.YarnSpace.Accent">
+        <item name="colorPrimary">@color/accent_lavender_night</item>
+        <item name="colorPrimaryContainer">@color/accent_lavender_night</item>
+    </style>
+
+    <style name="ThemeOverlay.YarnSpace.Accent.Yellow" parent="ThemeOverlay.YarnSpace.Accent">
+        <item name="colorPrimary">@color/accent_yellow_night</item>
+        <item name="colorPrimaryContainer">@color/accent_yellow_night</item>
+    </style>
+
+    <style name="ThemeOverlay.YarnSpace.Accent.Pink" parent="ThemeOverlay.YarnSpace.Accent">
+        <item name="colorPrimary">@color/accent_pink_night</item>
+        <item name="colorPrimaryContainer">@color/accent_pink_night</item>
+    </style>
+
+    <style name="ThemeOverlay.YarnSpace.Accent.Blue" parent="ThemeOverlay.YarnSpace.Accent">
+        <item name="colorPrimary">@color/accent_blue_night</item>
+        <item name="colorPrimaryContainer">@color/accent_blue_night</item>
+    </style>
+
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/bg_night</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_system_logo</item>

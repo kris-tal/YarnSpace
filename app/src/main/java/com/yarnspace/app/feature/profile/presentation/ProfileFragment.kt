@@ -1,31 +1,50 @@
 package com.yarnspace.app.feature.profile.presentation
 
+import android.content.res.Configuration
 import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.yarnspace.app.R
+import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.feature.feed.presentation.FeedAdapter
 import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
+import com.yarnspace.app.theme.AccentColor
+import com.yarnspace.app.theme.AccentThemeCoordinator
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -76,6 +95,12 @@ class ProfileFragment : Fragment() {
 
     private val feedViewModel: FeedViewModel by viewModels()
 
+    @Inject
+    lateinit var themeSettingsRepository: ThemeSettingsRepository
+
+    @Inject
+    lateinit var accentThemeCoordinator: AccentThemeCoordinator
+
     private lateinit var adapter: FeedAdapter
     private var profileMode: ProfileViewModel.ProfileMode = ProfileViewModel.ProfileMode.PRIVATE
 
@@ -92,6 +117,7 @@ class ProfileFragment : Fragment() {
         val tvDisplayName = view.findViewById<TextView>(R.id.profile_display_name)
         val tvUsername = view.findViewById<TextView>(R.id.profile_username_text)
         val ivAvatar = view.findViewById<ImageView>(R.id.ivProfileAvatar)
+        val accentBlock = view.findViewById<View>(R.id.profile_accent_block)
         val btnBack = view.findViewById<ImageButton>(R.id.btnProfileBack)
         val btnEdit = view.findViewById<ImageButton>(R.id.btnProfileEdit)
         val btnFollow = view.findViewById<MaterialButton>(R.id.btnProfileFollow)
@@ -105,6 +131,159 @@ class ProfileFragment : Fragment() {
         val tvProjectsCount = view.findViewById<TextView>(R.id.tvProjectsCount)
         val tvSavedCount = view.findViewById<TextView>(R.id.tvSavedCount)
         val savedCountGroup = view.findViewById<View>(R.id.profileSavedCountGroup)
+
+        // ddit panel refs
+        val editOverlay = view.findViewById<FrameLayout>(R.id.profileEditOverlay)
+        val btnEditClose = view.findViewById<ImageButton>(R.id.btnProfileEditClose)
+        val ivEditAvatar = view.findViewById<ImageView>(R.id.ivProfileEditAvatar)
+        val btnChangePhoto = view.findViewById<Button>(R.id.btnProfileEditChangePhoto)
+        val etEditDisplayName = view.findViewById<TextView>(R.id.etProfileEditDisplayName)
+        val accentGroup1 = view.findViewById<MaterialButtonToggleGroup>(R.id.profileEditAccentGroup)
+        val accentGroup2 = view.findViewById<MaterialButtonToggleGroup>(R.id.profileEditAccentGroup2)
+        val btnSave = view.findViewById<Button>(R.id.btnProfileEditSave)
+        val btnCancel = view.findViewById<Button>(R.id.btnProfileEditCancel)
+
+        var initialDisplayName: String = ""
+        var initialAccent: String = AccentColor.SAGE.backendName
+        var currentAccent: String = initialAccent
+        var pickedAvatarUri: Uri? = null
+
+        var pendingAccentToApplyGlobally: String? = null
+
+        var applyTabStylesRef: (() -> Unit)? = null
+
+        fun accentInt(name: String): Int {
+            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val accent = AccentColor.fromBackendName(name)
+            val resId = if (isNight) accent.nightColorResId else accent.colorResId
+            return ContextCompat.getColor(requireContext(), resId)
+        }
+
+        fun applyAccentToProfile(name: String) {
+            val primary = accentInt(name)
+            accentBlock.backgroundTintList = ColorStateList.valueOf(primary)
+
+            applyTabStylesRef?.invoke()
+        }
+
+        fun isEditDirty(): Boolean {
+            val dn = etEditDisplayName.text?.toString().orEmpty().trim()
+            return dn != initialDisplayName.trim() || currentAccent != initialAccent || pickedAvatarUri != null
+        }
+
+        fun setEditPanelVisible(visible: Boolean) {
+            editOverlay.visibility = if (visible) View.VISIBLE else View.GONE
+        }
+
+        fun confirmDiscard(onDiscard: () -> Unit) {
+            AlertDialog.Builder(requireContext())
+                .setTitle(getString(R.string.profile_edit_discard_title))
+                .setMessage(getString(R.string.profile_edit_discard_message))
+                .setPositiveButton(getString(R.string.profile_edit_discard_action_discard)) { _, _ -> onDiscard() }
+                .setNegativeButton(getString(R.string.profile_edit_discard_action_keep), null)
+                .show()
+        }
+
+        fun closeEditPanel(force: Boolean) {
+            if (!force && isEditDirty()) {
+                confirmDiscard { closeEditPanel(force = true) }
+                return
+            }
+            setEditPanelVisible(false)
+            pickedAvatarUri = null
+            // Restore real accent from state when panel closes
+            viewModel.uiState.value.profile?.let { applyAccentToProfile(it.accentColor) }
+        }
+
+        fun setAccentSelection(name: String) {
+            currentAccent = name
+            applyAccentToProfile(name)
+
+            val allButtons = listOf(
+                view.findViewById<MaterialButton>(R.id.btnAccentSage),
+                view.findViewById<MaterialButton>(R.id.btnAccentPeach),
+                view.findViewById<MaterialButton>(R.id.btnAccentLavender),
+                view.findViewById<MaterialButton>(R.id.btnAccentYellow),
+                view.findViewById<MaterialButton>(R.id.btnAccentPink),
+                view.findViewById<MaterialButton>(R.id.btnAccentBlue),
+            )
+            val target = allButtons.firstOrNull { it.tag == name }
+            if (target != null) {
+                if (target.parent == accentGroup1) {
+                    accentGroup2.clearChecked()
+                    accentGroup1.check(target.id)
+                } else {
+                    accentGroup1.clearChecked()
+                    accentGroup2.check(target.id)
+                }
+            }
+        }
+
+        fun styleAccentButtons() {
+            fun style(buttonId: Int) {
+                val b = view.findViewById<MaterialButton>(buttonId)
+                val name = b.tag as? String ?: return
+                b.backgroundTintList = ColorStateList.valueOf(accentInt(name))
+                b.setTextColor(MaterialColors.getColor(b, com.google.android.material.R.attr.colorOnPrimary))
+            }
+            style(R.id.btnAccentSage)
+            style(R.id.btnAccentPeach)
+            style(R.id.btnAccentLavender)
+            style(R.id.btnAccentYellow)
+            style(R.id.btnAccentPink)
+            style(R.id.btnAccentBlue)
+        }
+
+        fun openEditPanel(profile: ProfilePublicDto) {
+            styleAccentButtons()
+            initialDisplayName = profile.displayName
+            initialAccent = profile.accentColor
+            etEditDisplayName.text = initialDisplayName
+            pickedAvatarUri = null
+
+            ivEditAvatar.load(profile.avatarUrl) {
+                placeholder(R.drawable.ic_default_avatar)
+                error(R.drawable.ic_default_avatar)
+            }
+            setAccentSelection(initialAccent)
+            setEditPanelVisible(true)
+        }
+
+        val pickAvatarLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            if (uri != null) {
+                pickedAvatarUri = uri
+                ivEditAvatar.load(uri)
+                ivAvatar.load(uri)
+            }
+        }
+
+        fun createAvatarPart(uri: Uri): MultipartBody.Part? {
+            val resolver = requireContext().contentResolver
+            val mime = resolver.getType(uri) ?: return null
+            val bytes = resolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+            val ext = when (mime) {
+                "image/png" -> "png"
+                "image/webp" -> "webp"
+                else -> "jpg"
+            }
+            val body = bytes.toRequestBody(mime.toMediaTypeOrNull())
+            return MultipartBody.Part.createFormData("file", "avatar.$ext", body)
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (editOverlay.visibility == View.VISIBLE) {
+                        closeEditPanel(force = false)
+                    } else {
+                        isEnabled = false
+                        requireActivity().onBackPressedDispatcher.onBackPressed()
+                        isEnabled = true
+                    }
+                }
+            }
+        )
 
         fun styleTabButton(button: MaterialButton, selected: Boolean) {
             val primary = MaterialColors.getColor(button, com.google.android.material.R.attr.colorPrimary)
@@ -216,7 +395,61 @@ class ProfileFragment : Fragment() {
         view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter
 
         btnEdit.setOnClickListener {
-            Snackbar.make(view, getString(R.string.profile_edit_coming_soon), Snackbar.LENGTH_SHORT).show()
+            val profile = viewModel.uiState.value.profile
+            if (profile != null) {
+                openEditPanel(profile)
+            } else {
+                Snackbar.make(view, getString(R.string.error_loading_profile), Snackbar.LENGTH_SHORT).show()
+            }
+        }
+
+        btnEditClose.setOnClickListener { closeEditPanel(force = false) }
+        btnCancel.setOnClickListener { closeEditPanel(force = false) }
+        btnChangePhoto.setOnClickListener { pickAvatarLauncher.launch("image/*") }
+
+        accentGroup1.addOnButtonCheckedListener { group, checkedId, isChecked ->
+            if (!isChecked || checkedId == View.NO_ID) return@addOnButtonCheckedListener
+            accentGroup2.clearChecked()
+            val b = group.findViewById<MaterialButton>(checkedId)
+            val name = b.tag as? String ?: return@addOnButtonCheckedListener
+            currentAccent = name
+            applyAccentToProfile(name)
+        }
+        accentGroup2.addOnButtonCheckedListener { group, checkedId, isChecked ->
+            if (!isChecked || checkedId == View.NO_ID) return@addOnButtonCheckedListener
+            accentGroup1.clearChecked()
+            val b = group.findViewById<MaterialButton>(checkedId)
+            val name = b.tag as? String ?: return@addOnButtonCheckedListener
+            currentAccent = name
+            applyAccentToProfile(name)
+        }
+
+        etEditDisplayName.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
+            override fun afterTextChanged(s: Editable?) = Unit
+        })
+
+        btnSave.setOnClickListener {
+            val displayName = etEditDisplayName.text?.toString().orEmpty().trim()
+            if (displayName.isBlank()) {
+                Snackbar.make(view, getString(R.string.error_fill_all_fields), Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val part = pickedAvatarUri?.let { createAvatarPart(it) }
+
+            pendingAccentToApplyGlobally = currentAccent
+
+            btnSave.isEnabled = false
+            btnCancel.isEnabled = false
+            btnEditClose.isEnabled = false
+            btnChangePhoto.isEnabled = false
+
+            viewModel.saveMyProfile(
+                displayName = displayName,
+                accentColor = currentAccent,
+                avatarFile = part,
+            )
         }
 
         btnBack.setOnClickListener {
@@ -253,6 +486,14 @@ class ProfileFragment : Fragment() {
                             tvDisplayName.text = profile.displayName
                             tvUsername.text = getString(R.string.username_format, profile.username)
                             updateCounts(profile)
+
+                            if (editOverlay.visibility != View.VISIBLE) {
+                                applyAccentToProfile(profile.accentColor)
+                                ivAvatar.load(profile.avatarUrl) {
+                                    placeholder(R.drawable.ic_default_avatar)
+                                    error(R.drawable.ic_default_avatar)
+                                }
+                            }
                         } else if (!state.isLoadingProfile) {
                             tvDisplayName.text = getString(R.string.error_loading_profile)
                         }
@@ -275,6 +516,36 @@ class ProfileFragment : Fragment() {
                             is ProfileViewModel.ProfileUiEvent.ShowSnackbar -> {
                                 Snackbar.make(view, event.message, Snackbar.LENGTH_SHORT).show()
                             }
+
+                            is ProfileViewModel.ProfileUiEvent.EditSaveFinished -> {
+                                if (!event.success) {
+                                    btnSave.isEnabled = true
+                                    btnCancel.isEnabled = true
+                                    btnEditClose.isEnabled = true
+                                    btnChangePhoto.isEnabled = true
+                                }
+                            }
+
+                            ProfileViewModel.ProfileUiEvent.CloseEditPanel -> {
+                                btnSave.isEnabled = true
+                                btnCancel.isEnabled = true
+                                btnEditClose.isEnabled = true
+                                btnChangePhoto.isEnabled = true
+                                closeEditPanel(force = true)
+
+                                val pending = pendingAccentToApplyGlobally
+                                pendingAccentToApplyGlobally = null
+                                if (!pending.isNullOrBlank()) {
+                                    val old = themeSettingsRepository.getAccentColorName()
+                                    if (old != pending) {
+                                        themeSettingsRepository.setAccentColorName(pending)
+                                        (activity as? AppCompatActivity)?.let { act ->
+                                            accentThemeCoordinator.applyAccent(act, pending)
+                                            act.recreate()
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -288,4 +559,3 @@ class ProfileFragment : Fragment() {
         )
     }
 }
-

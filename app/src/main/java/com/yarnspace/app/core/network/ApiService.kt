@@ -5,16 +5,22 @@ import com.yarnspace.app.data.RegisterRequest
 import com.yarnspace.app.data.remote.dto.PostCreateDto
 import com.yarnspace.app.data.remote.dto.PostReadDto
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
+import com.yarnspace.app.data.remote.dto.ProfileUpdateDto
 import com.yarnspace.app.data.remote.dto.ProjectCreateDto
 import com.yarnspace.app.data.remote.dto.ProjectReadDto
 import com.yarnspace.app.data.remote.dto.UserPublicDto
 import com.yarnspace.app.data.remote.dto.UserPrivateDto
+import com.yarnspace.app.data.remote.dto.AvatarUploadResponseDto
+import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -34,6 +40,15 @@ interface ApiService {
 
     @GET("users/me")
     suspend fun getMe(): UserPrivateDto
+
+    @PATCH("users/me")
+    suspend fun updateMe(@Body payload: ProfileUpdateDto): UserPrivateDto
+
+    @Multipart
+    @POST("users/me/avatar")
+    suspend fun uploadMyAvatar(
+        @Part file: MultipartBody.Part,
+    ): AvatarUploadResponseDto
 
     @GET("users/search")
     suspend fun searchUsers(@Query("q") query: String): List<UserPublicDto>

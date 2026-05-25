@@ -1,4 +1,7 @@
+import os
+
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from db import engine, Base
 import models
@@ -15,6 +18,9 @@ app.include_router(users.router)
 app.include_router(posts.router)
 app.include_router(projects.router)
 app.include_router(feed.router)
+
+os.makedirs("static/avatars", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.on_event("startup")
 def startup_event():

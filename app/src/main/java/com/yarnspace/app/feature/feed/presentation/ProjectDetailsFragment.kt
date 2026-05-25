@@ -14,6 +14,7 @@ import com.google.android.material.color.MaterialColors
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
+import com.yarnspace.app.theme.resolveAccentColorInt
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -24,6 +25,7 @@ class ProjectDetailsFragment : Fragment() {
         private const val ARG_PROJECT_TITLE = "arg_project_title"
         private const val ARG_PROJECT_AUTHOR_NAME = "arg_project_author_name"
         private const val ARG_PROJECT_AUTHOR_USERNAME = "arg_project_author_username"
+        private const val ARG_PROJECT_AUTHOR_ACCENT_COLOR = "arg_project_author_accent_color"
         private const val ARG_PROJECT_CONTENT = "arg_project_content"
         private const val ARG_PROJECT_IMAGE_RES_ID = "arg_project_image_res_id"
         private const val ARG_PROJECT_HOOK_SIZE = "arg_project_hook_size"
@@ -42,6 +44,7 @@ class ProjectDetailsFragment : Fragment() {
                     putString(ARG_PROJECT_TITLE, project.title)
                     putString(ARG_PROJECT_AUTHOR_NAME, project.author.displayName)
                     putString(ARG_PROJECT_AUTHOR_USERNAME, project.author.username)
+                    putString(ARG_PROJECT_AUTHOR_ACCENT_COLOR, project.author.accentColor)
                     putString(ARG_PROJECT_CONTENT, project.content ?: "")
 
                     putInt(ARG_PROJECT_IMAGE_RES_ID, project.imageResId ?: -1)
@@ -75,7 +78,8 @@ class ProjectDetailsFragment : Fragment() {
             author = UserSummary(
                 id = -1,
                 username = args.getString(ARG_PROJECT_AUTHOR_USERNAME).orEmpty(),
-                displayName = args.getString(ARG_PROJECT_AUTHOR_NAME).orEmpty()
+                displayName = args.getString(ARG_PROJECT_AUTHOR_NAME).orEmpty(),
+                accentColor = args.getString(ARG_PROJECT_AUTHOR_ACCENT_COLOR),
             ),
             createdAt = 0,
             title = args.getString(ARG_PROJECT_TITLE).orEmpty(),
@@ -107,6 +111,11 @@ class ProjectDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        view.findViewById<View>(R.id.projectDetailsTopBar)?.let { topBar ->
+            val accent = project.author.resolveAccentColorInt(requireContext())
+            topBar.backgroundTintList = ColorStateList.valueOf(accent)
+        }
 
         view.findViewById<ImageButton>(R.id.btnProjectDetailsBack).setOnClickListener {
             if (!parentFragmentManager.popBackStackImmediate()) {

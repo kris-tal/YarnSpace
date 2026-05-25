@@ -3,11 +3,13 @@ package com.yarnspace.app.feature.profile.data
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.core.network.ApiService
+import com.yarnspace.app.data.remote.dto.ProfileUpdateDto
 import com.yarnspace.app.data.remote.dto.PostReadDto
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
 import com.yarnspace.app.data.remote.dto.ProjectReadDto
 import com.yarnspace.app.data.remote.dto.UserPrivateDto
 import com.yarnspace.app.data.remote.dto.UserPublicDto
+import okhttp3.MultipartBody
 import javax.inject.Inject
 
 class RemoteProfileRepository @Inject constructor(
@@ -44,6 +46,14 @@ class RemoteProfileRepository @Inject constructor(
 
     override suspend fun unfollowUser(username: String) {
         apiService.unfollowUser(username)
+    }
+
+    override suspend fun updateMe(payload: ProfileUpdateDto): UserPrivateDto {
+        return apiService.updateMe(payload)
+    }
+
+    override suspend fun uploadMyAvatar(file: MultipartBody.Part): String {
+        return apiService.uploadMyAvatar(file).avatarUrl
     }
 
     private fun UserPublicDto.toUserSummary(): UserSummary {

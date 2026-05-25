@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+      implementation(libs.coil)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -70,7 +71,6 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.fragment)
     ksp(libs.androidx.hilt.compiler)
-
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

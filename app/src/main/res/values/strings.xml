@@ -41,6 +41,18 @@
     <string name="profile_edit">Edit</string>
     <string name="profile_edit_coming_soon">Not implemented yet</string>
 
+    <string name="profile_edit_title">Edit profile</string>
+    <string name="profile_edit_change_photo">Change photo</string>
+    <string name="profile_edit_display_name">Display name</string>
+    <string name="profile_edit_accent_color">Background color</string>
+    <string name="profile_edit_save">Save</string>
+    <string name="profile_edit_cancel">Cancel</string>
+
+    <string name="profile_edit_discard_title">Discard changes?</string>
+    <string name="profile_edit_discard_message">You have unsaved changes. Do you want to discard them?</string>
+    <string name="profile_edit_discard_action_discard">Discard</string>
+    <string name="profile_edit_discard_action_keep">Keep editing</string>
+
     <string name="profile_follow">Follow</string>
     <string name="profile_unfollow">Unfollow</string>
 

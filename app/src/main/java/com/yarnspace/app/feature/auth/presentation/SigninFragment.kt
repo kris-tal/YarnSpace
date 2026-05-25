@@ -15,6 +15,7 @@ import com.yarnspace.app.R
 import com.yarnspace.app.data.RegisterRequest
 import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.core.network.ApiService
+import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,6 +25,9 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
 
     @Inject
     lateinit var apiService: ApiService
+
+    @Inject
+    lateinit var themeSettingsRepository: ThemeSettingsRepository
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -78,6 +82,8 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
 
                 TokenManager.saveToken(requireContext(), response.accessToken)
 
+                themeSettingsRepository.setAccentColorName(response.user.accentColor)
+
                 startActivity(Intent(requireContext(), MainActivity::class.java))
                 requireActivity().finish()
             } catch (e: Exception) {
@@ -87,4 +93,3 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
         }
     }
 }
-

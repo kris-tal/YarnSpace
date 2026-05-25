@@ -1,13 +1,16 @@
 package com.yarnspace.app.theme
 
-import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object ThemeModeCoordinator {
-
-    fun applySavedNightMode(context: Context) {
-        val settings = ThemeSettingsRepository(context).getThemeSettings()
+@Singleton
+class ThemeModeCoordinator @Inject constructor(
+    private val repository: ThemeSettingsRepository
+) {
+    fun applySavedNightMode() {
+        val settings = repository.getThemeSettings()
 
         val mode = if (settings.useCustomTheme) {
             if (settings.forceNightMode) AppCompatDelegate.MODE_NIGHT_YES
@@ -19,4 +22,3 @@ object ThemeModeCoordinator {
         AppCompatDelegate.setDefaultNightMode(mode)
     }
 }
-

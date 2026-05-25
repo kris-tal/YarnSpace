@@ -64,11 +64,13 @@ class SettingsPanelController(
                 } finally {
                     TokenManager.clearToken(context)
                     sessionRepository.clearSession()
+                    themeSettingsRepository.clearAccentColor()
                     onLogout()
                 }
             } ?: run {
                 TokenManager.clearToken(context)
                 sessionRepository.clearSession()
+                themeSettingsRepository.clearAccentColor()
                 onLogout()
             }
         }

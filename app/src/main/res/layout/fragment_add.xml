@@ -101,11 +101,12 @@
                     android:text="@string/add_image_not_selected"
                     android:textAppearance="?attr/textAppearanceBodySmall" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPublishPost"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
+                    android:textAllCaps="false"
                     android:text="@string/add_action_publish_post" />
             </LinearLayout>
 
@@ -232,11 +233,12 @@
                         android:hint="@string/spec_additional_materials" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPublishProject"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
+                    android:textAllCaps="false"
                     android:text="@string/add_action_publish_project" />
             </LinearLayout>
 

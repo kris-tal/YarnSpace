@@ -3,7 +3,9 @@ package com.yarnspace.app.feature.profile.presentation
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yarnspace.app.core.model.FeedItem
+import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
+import com.yarnspace.app.data.remote.dto.ProfileUpdateDto
 import com.yarnspace.app.feature.profile.data.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -15,6 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
 import javax.inject.Inject
 
 @HiltViewModel
@@ -46,6 +49,10 @@ class ProfileViewModel @Inject constructor(
 
     sealed interface ProfileUiEvent {
         data class ShowSnackbar(val message: String) : ProfileUiEvent
+
+        data object CloseEditPanel : ProfileUiEvent
+
+        data class EditSaveFinished(val success: Boolean) : ProfileUiEvent
     }
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -100,6 +107,78 @@ class ProfileViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(followInProgress = false)
             }
         }
+    }
+
+    fun saveMyProfile(
+        displayName: String,
+        accentColor: String,
+        avatarFile: MultipartBody.Part?,
+    ) {
+        if (_uiState.value.mode != ProfileMode.PRIVATE) return
+
+        viewModelScope.launch {
+            try {
+                val avatarUrl = if (avatarFile != null) repository.uploadMyAvatar(avatarFile) else null
+                val updated = repository.updateMe(
+                    ProfileUpdateDto(
+                        displayName = displayName,
+                        accentColor = accentColor,
+                        avatarUrl = avatarUrl,
+                    )
+                )
+
+                val current = _uiState.value.profile
+                if (current != null) {
+                    _uiState.value = _uiState.value.copy(
+                        profile = current.copy(
+                            displayName = updated.displayName,
+                            accentColor = updated.accentColor,
+                            avatarUrl = updated.avatarUrl,
+                        )
+                    )
+                }
+
+                val updatedSummary = UserSummary(
+                    id = updated.id.toLong(),
+                    username = updated.username,
+                    displayName = updated.displayName,
+                    avatarUrl = updated.avatarUrl,
+                    accentColor = updated.accentColor,
+                )
+                updateCachedAuthorAppearance(username = updated.username, updated = updatedSummary)
+
+                _events.tryEmit(ProfileUiEvent.CloseEditPanel)
+                _events.tryEmit(ProfileUiEvent.EditSaveFinished(success = true))
+                _events.tryEmit(ProfileUiEvent.ShowSnackbar("Profile updated"))
+            } catch (e: Exception) {
+                _events.tryEmit(ProfileUiEvent.EditSaveFinished(success = false))
+                _events.tryEmit(ProfileUiEvent.ShowSnackbar(e.message ?: "Failed to update profile"))
+            }
+        }
+    }
+
+    private fun updateCachedAuthorAppearance(username: String, updated: UserSummary) {
+        val newTabItems = _uiState.value.tabItems.mapValues { (_, items) ->
+            items.map { item ->
+                when (item) {
+                    is FeedItem.Project -> {
+                        if (item.author.username == username) item.copy(author = updated) else item
+                    }
+
+                    is FeedItem.Post -> {
+                        val newAuthor = if (item.author.username == username) updated else item.author
+                        val newReblog = item.rebloggedProject?.let { rp ->
+                            if (rp.author.username == username) rp.copy(author = updated) else rp
+                        }
+                        item.copy(author = newAuthor, rebloggedProject = newReblog)
+                    }
+
+                    else -> item
+                }
+            }
+        }
+
+        _uiState.value = _uiState.value.copy(tabItems = newTabItems)
     }
 
     private fun loadProfile(requestedUsername: String?, forceMe: Boolean) {
