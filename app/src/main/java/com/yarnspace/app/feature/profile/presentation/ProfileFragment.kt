@@ -43,6 +43,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import com.yarnspace.app.core.util.ImageUploadUtils
+import com.yarnspace.app.core.util.UrlUtils
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
@@ -191,7 +193,6 @@ class ProfileFragment : Fragment() {
             }
             setEditPanelVisible(false)
             pickedAvatarUri = null
-            // Restore real accent from state when panel closes
             viewModel.uiState.value.profile?.let { applyAccentToProfile(it.accentColor) }
         }
 
@@ -241,7 +242,7 @@ class ProfileFragment : Fragment() {
             etEditDisplayName.text = initialDisplayName
             pickedAvatarUri = null
 
-            ivEditAvatar.load(profile.avatarUrl) {
+            ivEditAvatar.load(UrlUtils.resolve(profile.avatarUrl)) {
                 placeholder(R.drawable.ic_default_avatar)
                 error(R.drawable.ic_default_avatar)
             }
@@ -258,16 +259,14 @@ class ProfileFragment : Fragment() {
         }
 
         fun createAvatarPart(uri: Uri): MultipartBody.Part? {
-            val resolver = requireContext().contentResolver
-            val mime = resolver.getType(uri) ?: return null
-            val bytes = resolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
-            val ext = when (mime) {
-                "image/png" -> "png"
-                "image/webp" -> "webp"
-                else -> "jpg"
-            }
-            val body = bytes.toRequestBody(mime.toMediaTypeOrNull())
-            return MultipartBody.Part.createFormData("file", "avatar.$ext", body)
+            return ImageUploadUtils.createJpegPart(
+                context = requireContext(),
+                uri = uri,
+                formFieldName = "file",
+                fileName = "avatar.jpg",
+                maxDimensionPx = 512,
+                quality = 75,
+            )
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -489,7 +488,7 @@ class ProfileFragment : Fragment() {
 
                             if (editOverlay.visibility != View.VISIBLE) {
                                 applyAccentToProfile(profile.accentColor)
-                                ivAvatar.load(profile.avatarUrl) {
+                                ivAvatar.load(UrlUtils.resolve(profile.avatarUrl)) {
                                     placeholder(R.drawable.ic_default_avatar)
                                     error(R.drawable.ic_default_avatar)
                                 }

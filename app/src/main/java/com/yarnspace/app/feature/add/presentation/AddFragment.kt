@@ -1,10 +1,13 @@
 package com.yarnspace.app.feature.add.presentation
 
 import android.content.res.ColorStateList
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import coil.load
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -13,6 +16,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.yarnspace.app.R
 import com.yarnspace.app.core.network.ApiService
+import com.yarnspace.app.core.util.ImageUploadUtils
 import com.yarnspace.app.data.remote.dto.PostCreateDto
 import com.yarnspace.app.data.remote.dto.ProjectCreateDto
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,10 +30,8 @@ class AddFragment : Fragment(R.layout.fragment_add) {
     @Inject
     lateinit var apiService: ApiService
 
-    companion object {
-        // backend requires a non-null imageUrl for projects
-        private const val PROJECT_IMAGE_PLACEHOLDER_URL = "placeholder"
-    }
+    private var pickedPostImageUri: Uri? = null
+    private var pickedProjectImageUri: Uri? = null
 
     private enum class Tab { POST, PROJECT }
 
@@ -50,10 +52,14 @@ class AddFragment : Fragment(R.layout.fragment_add) {
 
         val etPostContent = view.findViewById<TextInputEditText>(R.id.etAddPostContent)
         val btnAddPostImage = view.findViewById<View>(R.id.btnAddPostImage)
+        val tvPostImageStatus = view.findViewById<android.widget.TextView>(R.id.tvAddPostImageStatus)
+        val ivPostImagePreview = view.findViewById<android.widget.ImageView>(R.id.ivAddPostImagePreview)
         val btnPublishPost = view.findViewById<View>(R.id.btnPublishPost)
 
         val etProjectTitle = view.findViewById<TextInputEditText>(R.id.etAddProjectTitle)
         val btnAddProjectImage = view.findViewById<View>(R.id.btnAddProjectImage)
+        val tvProjectImageStatus = view.findViewById<android.widget.TextView>(R.id.tvAddProjectImageStatus)
+        val ivProjectImagePreview = view.findViewById<android.widget.ImageView>(R.id.ivAddProjectImagePreview)
         val etProjectContent = view.findViewById<TextInputEditText>(R.id.etAddProjectContent)
         val etProjectHookSize = view.findViewById<TextInputEditText>(R.id.etAddProjectHookSize)
         val etProjectPattern = view.findViewById<TextInputEditText>(R.id.etAddProjectPattern)
@@ -91,7 +97,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
 
         fun isDirty(tab: Tab): Boolean {
             return when (tab) {
-                Tab.POST -> trimmed(etPostContent).isNotBlank()
+                Tab.POST -> trimmed(etPostContent).isNotBlank() || pickedPostImageUri != null
                 Tab.PROJECT -> listOf(
                     trimmed(etProjectTitle),
                     trimmed(etProjectContent),
@@ -101,7 +107,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                     trimmed(etProjectYarnAmount),
                     trimmed(etProjectTimeToComplete),
                     trimmed(etProjectAdditionalMaterials),
-                ).any { it.isNotBlank() }
+                ).any { it.isNotBlank() } || pickedProjectImageUri != null
             }
         }
 
@@ -109,6 +115,9 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             when (tab) {
                 Tab.POST -> {
                     etPostContent.setText("")
+                    pickedPostImageUri = null
+                    tvPostImageStatus.text = getString(R.string.add_image_not_selected)
+                    ivPostImagePreview.visibility = View.GONE
                 }
 
                 Tab.PROJECT -> {
@@ -120,6 +129,10 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                     etProjectYarnAmount.setText("")
                     etProjectTimeToComplete.setText("")
                     etProjectAdditionalMaterials.setText("")
+
+                    pickedProjectImageUri = null
+                    tvProjectImageStatus.text = getString(R.string.add_image_not_selected)
+                    ivProjectImagePreview.visibility = View.GONE
                 }
             }
         }
@@ -157,12 +170,36 @@ class AddFragment : Fragment(R.layout.fragment_add) {
         isInternalTabChange = false
         setTab(Tab.POST)
 
+        val pickPostImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            pickedPostImageUri = uri
+            if (uri == null) {
+                tvPostImageStatus.text = getString(R.string.add_image_not_selected)
+                ivPostImagePreview.visibility = View.GONE
+            } else {
+                tvPostImageStatus.text = "Image selected"
+                ivPostImagePreview.visibility = View.VISIBLE
+                ivPostImagePreview.load(uri)
+            }
+        }
+
+        val pickProjectImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+            pickedProjectImageUri = uri
+            if (uri == null) {
+                tvProjectImageStatus.text = getString(R.string.add_image_not_selected)
+                ivProjectImagePreview.visibility = View.GONE
+            } else {
+                tvProjectImageStatus.text = "Image selected"
+                ivProjectImagePreview.visibility = View.VISIBLE
+                ivProjectImagePreview.load(uri)
+            }
+        }
+
         btnAddPostImage.setOnClickListener {
-            Snackbar.make(view, getString(R.string.profile_edit_coming_soon), Snackbar.LENGTH_SHORT).show()
+            pickPostImageLauncher.launch("image/*")
         }
 
         btnAddProjectImage.setOnClickListener {
-            Snackbar.make(view, getString(R.string.profile_edit_coming_soon), Snackbar.LENGTH_SHORT).show()
+            pickProjectImageLauncher.launch("image/*")
         }
 
         toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -201,7 +238,6 @@ class AddFragment : Fragment(R.layout.fragment_add) {
 
         btnPublishPost.setOnClickListener {
             val content = trimmed(etPostContent)
-            val imageUrl: String? = null
 
             if (content.isBlank()) {
                 Snackbar.make(view, getString(R.string.add_error_post_content_required), Snackbar.LENGTH_SHORT).show()
@@ -211,6 +247,19 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             btnPublishPost.isEnabled = false
             lifecycleScope.launch {
                 try {
+                    val imageUrl: String? = pickedPostImageUri?.let { uri ->
+                        val part = ImageUploadUtils.createJpegPart(
+                            context = requireContext(),
+                            uri = uri,
+                            formFieldName = "file",
+                            fileName = "post.jpg",
+                            maxDimensionPx = 1080,
+                            quality = 80,
+                        )
+                        if (part == null) throw IllegalStateException("Unable to read selected image")
+                        apiService.uploadImage(part).imageUrl
+                    }
+
                     apiService.createPost(PostCreateDto(content = content, imageUrl = imageUrl))
                     Snackbar.make(view, getString(R.string.add_success_post_published), Snackbar.LENGTH_SHORT).show()
                     clearTab(Tab.POST)
@@ -218,7 +267,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                 } catch (e: Exception) {
                     val message = when (e) {
                         is HttpException -> "Failed to publish post: ${e.code()}"
-                        else -> "Failed to publish post"
+                        else -> e.message?.let { "Failed to publish post: $it" } ?: "Failed to publish post"
                     }
                     Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
                 } finally {
@@ -229,7 +278,11 @@ class AddFragment : Fragment(R.layout.fragment_add) {
 
         btnPublishProject.setOnClickListener {
             val title = trimmed(etProjectTitle)
-            val imageUrl = PROJECT_IMAGE_PLACEHOLDER_URL
+
+            if (pickedProjectImageUri == null) {
+                Snackbar.make(view, getString(R.string.add_error_project_image_required), Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             if (title.isBlank()) {
                 Snackbar.make(view, getString(R.string.add_error_project_title_required), Snackbar.LENGTH_SHORT).show()
@@ -237,7 +290,8 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             }
             val payload = ProjectCreateDto(
                 title = title,
-                imageUrl = imageUrl,
+                // will be replaced after upload
+                imageUrl = "",
                 content = blankToNull(raw(etProjectContent)),
                 hookSize = blankToNull(raw(etProjectHookSize)),
                 pattern = blankToNull(raw(etProjectPattern)),
@@ -250,14 +304,25 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             btnPublishProject.isEnabled = false
             lifecycleScope.launch {
                 try {
-                    apiService.createProject(payload)
+                    val part = ImageUploadUtils.createJpegPart(
+                        context = requireContext(),
+                        uri = pickedProjectImageUri!!,
+                        formFieldName = "file",
+                        fileName = "project.jpg",
+                        maxDimensionPx = 1080,
+                        quality = 80,
+                    )
+                    if (part == null) throw IllegalStateException("Unable to read selected image")
+                    val imageUrl = apiService.uploadImage(part).imageUrl
+
+                    apiService.createProject(payload.copy(imageUrl = imageUrl))
                     Snackbar.make(view, getString(R.string.add_success_project_published), Snackbar.LENGTH_SHORT).show()
                     clearTab(Tab.PROJECT)
                     navigateToProfile()
                 } catch (e: Exception) {
                     val message = when (e) {
                         is HttpException -> "Failed to publish project: ${e.code()}"
-                        else -> "Failed to publish project"
+                        else -> e.message?.let { "Failed to publish project: $it" } ?: "Failed to publish project"
                     }
                     Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
                 } finally {

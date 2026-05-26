@@ -10,10 +10,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import coil.load
 import com.google.android.material.color.MaterialColors
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
+import com.yarnspace.app.core.util.UrlUtils
 import com.yarnspace.app.theme.resolveAccentColorInt
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -25,9 +27,11 @@ class ProjectDetailsFragment : Fragment() {
         private const val ARG_PROJECT_TITLE = "arg_project_title"
         private const val ARG_PROJECT_AUTHOR_NAME = "arg_project_author_name"
         private const val ARG_PROJECT_AUTHOR_USERNAME = "arg_project_author_username"
+        private const val ARG_PROJECT_AUTHOR_AVATAR_URL = "arg_project_author_avatar_url"
         private const val ARG_PROJECT_AUTHOR_ACCENT_COLOR = "arg_project_author_accent_color"
         private const val ARG_PROJECT_CONTENT = "arg_project_content"
         private const val ARG_PROJECT_IMAGE_RES_ID = "arg_project_image_res_id"
+        private const val ARG_PROJECT_IMAGE_URL = "arg_project_image_url"
         private const val ARG_PROJECT_HOOK_SIZE = "arg_project_hook_size"
         private const val ARG_PROJECT_PATTERN = "arg_project_pattern"
         private const val ARG_PROJECT_YARN_TYPE = "arg_project_yarn_type"
@@ -44,10 +48,12 @@ class ProjectDetailsFragment : Fragment() {
                     putString(ARG_PROJECT_TITLE, project.title)
                     putString(ARG_PROJECT_AUTHOR_NAME, project.author.displayName)
                     putString(ARG_PROJECT_AUTHOR_USERNAME, project.author.username)
+                    putString(ARG_PROJECT_AUTHOR_AVATAR_URL, project.author.avatarUrl)
                     putString(ARG_PROJECT_AUTHOR_ACCENT_COLOR, project.author.accentColor)
                     putString(ARG_PROJECT_CONTENT, project.content ?: "")
 
                     putInt(ARG_PROJECT_IMAGE_RES_ID, project.imageResId ?: -1)
+                    putString(ARG_PROJECT_IMAGE_URL, project.imageUrl)
 
                     putString(ARG_PROJECT_HOOK_SIZE, project.hookSize)
                     putString(ARG_PROJECT_PATTERN, project.pattern)
@@ -79,12 +85,14 @@ class ProjectDetailsFragment : Fragment() {
                 id = -1,
                 username = args.getString(ARG_PROJECT_AUTHOR_USERNAME).orEmpty(),
                 displayName = args.getString(ARG_PROJECT_AUTHOR_NAME).orEmpty(),
+                avatarUrl = args.getString(ARG_PROJECT_AUTHOR_AVATAR_URL),
                 accentColor = args.getString(ARG_PROJECT_AUTHOR_ACCENT_COLOR),
             ),
             createdAt = 0,
             title = args.getString(ARG_PROJECT_TITLE).orEmpty(),
             content = args.getString(ARG_PROJECT_CONTENT),
             imageResId = if (args.getInt(ARG_PROJECT_IMAGE_RES_ID) != -1) args.getInt(ARG_PROJECT_IMAGE_RES_ID) else null,
+            imageUrl = args.getString(ARG_PROJECT_IMAGE_URL),
             isSavedByMe = isSaved,
             isRebloggedByMe = isReblogged
         )
@@ -127,13 +135,30 @@ class ProjectDetailsFragment : Fragment() {
         view.findViewById<TextView>(R.id.tvProjectDetailsAuthor).text = "@${project.author.username}"
         view.findViewById<TextView>(R.id.tvProjectDetailsContent).text = project.content
 
-        val imageResId = project.imageResId
+        view.findViewById<ImageView>(R.id.ivProjectDetailsAvatar).load(UrlUtils.resolve(project.author.avatarUrl)) {
+            placeholder(R.drawable.ic_default_avatar)
+            error(R.drawable.ic_default_avatar)
+        }
+
         val imageView = view.findViewById<ImageView>(R.id.ivProjectDetailsImage)
-        if (imageResId != null) {
-            imageView.visibility = View.VISIBLE
-            imageView.setImageResource(imageResId)
-        } else {
-            imageView.visibility = View.GONE
+
+        val url = UrlUtils.resolve(project.imageUrl)
+        when {
+            url != null -> {
+                imageView.visibility = View.VISIBLE
+                imageView.load(url) {
+                    crossfade(true)
+                }
+            }
+
+            project.imageResId != null -> {
+                imageView.visibility = View.VISIBLE
+                imageView.setImageResource(project.imageResId!!)
+            }
+
+            else -> {
+                imageView.visibility = View.GONE
+            }
         }
 
         val args = requireArguments()

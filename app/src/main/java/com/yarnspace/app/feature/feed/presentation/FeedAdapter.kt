@@ -11,10 +11,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.google.android.material.color.MaterialColors
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
+import com.yarnspace.app.core.util.UrlUtils
 import com.yarnspace.app.theme.resolveAccentColorInt
 
 class FeedAdapter(
@@ -72,8 +74,16 @@ class FeedAdapter(
             }
 
             tvAuthor.text = displayAuthor?.let { "@${it.username}" } ?: ""
-            val avatarRes = displayAuthor?.avatarResId ?: R.drawable.ic_default_avatar
-            ivAvatar.setImageResource(avatarRes)
+            val avatarUrl = UrlUtils.resolve(displayAuthor?.avatarUrl)
+            if (!avatarUrl.isNullOrBlank()) {
+                ivAvatar.load(avatarUrl) {
+                    placeholder(R.drawable.ic_default_avatar)
+                    error(R.drawable.ic_default_avatar)
+                }
+            } else {
+                val avatarRes = displayAuthor?.avatarResId ?: R.drawable.ic_default_avatar
+                ivAvatar.setImageResource(avatarRes)
+            }
 
             if (displayAuthor != null) {
                 val accentInt = displayAuthor.resolveAccentColorInt(itemView.context)
@@ -103,13 +113,11 @@ class FeedAdapter(
                         tvTitle.text = item.rebloggedProject.title
                         tvContent.text = item.rebloggedProject.content ?: ""
 
-                        val img = item.rebloggedProject.imageResId
-                        if (img != null) {
-                            ivImage.visibility = View.VISIBLE
-                            ivImage.setImageResource(img)
-                        } else {
-                            ivImage.visibility = View.GONE
-                        }
+                        bindContentImage(
+                            view = ivImage,
+                            imageUrl = item.rebloggedProject.imageUrl,
+                            imageResId = item.rebloggedProject.imageResId,
+                        )
 
                         llActions.visibility = View.VISIBLE
                         btnReblog.visibility = View.VISIBLE
@@ -125,13 +133,11 @@ class FeedAdapter(
                         tvContent.text = item.content
                         llActions.visibility = View.GONE
 
-                        val img = item.imageResId
-                        if (img != null) {
-                            ivImage.visibility = View.VISIBLE
-                            ivImage.setImageResource(img)
-                        } else {
-                            ivImage.visibility = View.GONE
-                        }
+                        bindContentImage(
+                            view = ivImage,
+                            imageUrl = item.imageUrl,
+                            imageResId = item.imageResId,
+                        )
                         itemView.setOnClickListener(null)
                         itemView.isClickable = false
                     }
@@ -143,13 +149,11 @@ class FeedAdapter(
                     tvTitle.text = item.title
                     tvContent.text = item.content ?: ""
 
-                    val img = item.imageResId
-                    if (img != null) {
-                        ivImage.visibility = View.VISIBLE
-                        ivImage.setImageResource(img)
-                    } else {
-                        ivImage.visibility = View.GONE
-                    }
+                    bindContentImage(
+                        view = ivImage,
+                        imageUrl = item.imageUrl,
+                        imageResId = item.imageResId,
+                    )
 
                     llActions.visibility = View.VISIBLE
                     btnReblog.visibility = View.VISIBLE
@@ -169,6 +173,27 @@ class FeedAdapter(
                     ivImage.visibility = View.GONE
                     itemView.setOnClickListener(null)
                     itemView.isClickable = false
+                }
+            }
+        }
+
+        private fun bindContentImage(view: ImageView, imageUrl: String?, imageResId: Int?) {
+            val url = UrlUtils.resolve(imageUrl)
+            when {
+                url != null -> {
+                    view.visibility = View.VISIBLE
+                    view.load(url) {
+                        crossfade(true)
+                    }
+                }
+
+                imageResId != null -> {
+                    view.visibility = View.VISIBLE
+                    view.setImageResource(imageResId)
+                }
+
+                else -> {
+                    view.visibility = View.GONE
                 }
             }
         }

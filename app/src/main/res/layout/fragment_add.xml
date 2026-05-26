@@ -101,6 +101,15 @@
                     android:text="@string/add_image_not_selected"
                     android:textAppearance="?attr/textAppearanceBodySmall" />
 
+                <ImageView
+                    android:id="@+id/ivAddPostImagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="10dp"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@null"
+                    android:visibility="gone" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPublishPost"
                     android:layout_width="match_parent"
@@ -146,6 +155,15 @@
                     android:alpha="0.75"
                     android:text="@string/add_image_not_selected"
                     android:textAppearance="?attr/textAppearanceBodySmall" />
+
+                <ImageView
+                    android:id="@+id/ivAddProjectImagePreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:layout_marginTop="10dp"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@null"
+                    android:visibility="gone" />
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"

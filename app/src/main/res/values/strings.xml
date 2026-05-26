@@ -92,8 +92,9 @@
     <string name="add_hint_project_title">Title</string>
     <string name="add_hint_project_content_optional">Description (optional)</string>
 
-    <string name="add_action_add_image">Add image (coming soon)</string>
+    <string name="add_action_add_image">Add image</string>
     <string name="add_image_not_selected">No image selected</string>
+    <string name="add_image_selected">Image selected</string>
 
     <string name="add_action_publish_post">Publish post</string>
     <string name="add_action_publish_project">Publish project</string>

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 import crud
 from db import get_db
+from deps import get_optional_current_user_id
 from schemas import AuthResponseDTO, UserRegisterDTO
 from security import create_access_token, hash_password
 
@@ -50,3 +51,17 @@ def login(form: Annotated[OAuth2PasswordRequestForm, Depends()], db: DbDep):
         "tokenType": "bearer",
         "user": user,
     }
+
+
+@router.post("/logout")
+def logout(user_id: Annotated[int | None, Depends(get_optional_current_user_id)]):
+    """Logout endpoint.
+
+    We use stateless JWTs, so there's nothing to invalidate server-side.
+    The client should delete its stored token.
+
+    If a token is provided, we parse it (via dependency) to keep behavior consistent.
+    """
+
+    return {"status": "ok"}
+

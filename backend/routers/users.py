@@ -103,7 +103,7 @@ def upload_my_avatar(
     request: Request,
     file: UploadFile = File(...),
 ):
-    allowed_types = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+    allowed_types = {"image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
     if file.content_type not in allowed_types:
         raise HTTPException(status_code=400, detail="Unsupported image type")
 

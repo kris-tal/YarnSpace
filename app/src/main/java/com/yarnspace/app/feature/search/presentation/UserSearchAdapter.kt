@@ -8,8 +8,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.UserSummary
+import com.yarnspace.app.core.util.UrlUtils
 
 class UserSearchAdapter(private val onUserClick: (UserSummary) -> Unit) :
     ListAdapter<UserSummary, UserSearchAdapter.VH>(Diff) {
@@ -44,8 +46,16 @@ class UserSearchAdapter(private val onUserClick: (UserSummary) -> Unit) :
             tvDisplayName.text = user.displayName
             tvUsername.text = itemView.context.getString(R.string.username_format, user.username)
 
-            val avatarRes = user.avatarResId ?: R.drawable.ic_default_avatar
-            ivAvatar.setImageResource(avatarRes)
+            val avatarUrl = UrlUtils.resolve(user.avatarUrl)
+            if (!avatarUrl.isNullOrBlank()) {
+                ivAvatar.load(avatarUrl) {
+                    placeholder(R.drawable.ic_default_avatar)
+                    error(R.drawable.ic_default_avatar)
+                }
+            } else {
+                val avatarRes = user.avatarResId ?: R.drawable.ic_default_avatar
+                ivAvatar.setImageResource(avatarRes)
+            }
 
             itemView.setOnClickListener { onUserClick(user) }
         }

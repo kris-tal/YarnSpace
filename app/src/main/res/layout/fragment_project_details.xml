@@ -29,6 +29,18 @@
             android:src="@drawable/ic_arrow_back"
             app:tint="?attr/colorOnPrimary" />
 
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivProjectDetailsAvatar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="10dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_default_avatar"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+            app:strokeColor="?attr/colorOnPrimary"
+            app:strokeWidth="1dp" />
+
         <TextView
             android:id="@+id/tvProjectDetailsAuthor"
             android:layout_width="0dp"
