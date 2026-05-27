@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import List, Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, func, delete
+from sqlalchemy import select, func, delete, case
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
@@ -197,6 +197,38 @@ def list_projects_by_user(db: Session, *, user_id: Optional[int], limit: int = 2
         stmt = stmt.where(models.Project.author_id == user_id)
 
     stmt = stmt.order_by(models.Project.created_at.desc()).limit(limit).offset(offset)
+    return list(db.execute(stmt).scalars().all())
+
+
+def _escape_like(value: str) -> str:
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") # so % and _ are treated literally
+
+
+def search_projects(db: Session, *, query: str, limit: int = 20, offset: int = 0) -> List[models.Project]:
+    # prefix first then substring
+
+    q = query.strip()
+    if not q:
+        return []
+
+    escaped = _escape_like(q)
+    prefix_pat = f"{escaped}%"
+    substr_pat = f"%{escaped}%"
+
+    score = case(
+        (models.Project.title.ilike(prefix_pat, escape="\\"), 2),
+        (models.Project.title.ilike(substr_pat, escape="\\"), 1),
+        else_=0,
+    )
+
+    stmt = (
+        select(models.Project)
+        .options(joinedload(models.Project.author))
+        .where(models.Project.title.ilike(substr_pat, escape="\\"))
+        .order_by(score.desc(), func.length(models.Project.title).asc(), models.Project.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
     return list(db.execute(stmt).scalars().all())
 
 

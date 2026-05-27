@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.search.SearchView
 import com.yarnspace.app.R
+import com.yarnspace.app.feature.feed.presentation.FeedAdapter
+import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
 import com.yarnspace.app.feature.profile.presentation.ProfileFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -26,7 +28,8 @@ class SearchFragment : Fragment() {
 
     private val viewModel: SearchViewModel by viewModels()
 
-    private lateinit var adapter: UserSearchAdapter
+    private lateinit var userAdapter: UserSearchAdapter
+    private lateinit var projectAdapter: FeedAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +45,7 @@ class SearchFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.searchResultsRecycler)
         val emptyStateText = view.findViewById<TextView>(R.id.searchEmptyState)
 
-        adapter = UserSearchAdapter { user ->
+        userAdapter = UserSearchAdapter { user ->
             val fragment = ProfileFragment.newPublicInstance(user)
 
             searchView.hide()
@@ -52,8 +55,24 @@ class SearchFragment : Fragment() {
                 .commit()
         }
 
+        projectAdapter = FeedAdapter(
+            onProjectClick = { project ->
+                searchView.hide()
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.main_container, ProjectDetailsFragment.newInstance(project))
+                    .addToBackStack(null)
+                    .commit()
+            },
+            onReblogClick = { project ->
+                viewModel.reblogProject(project)
+            },
+            onSaveClick = { project ->
+                viewModel.toggleSaveProject(project)
+            }
+        )
+
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = adapter
+        recyclerView.adapter = projectAdapter
 
         searchView.editText.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -85,10 +104,24 @@ class SearchFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.uiState.collect { state ->
-                        val results = state.results
-                        adapter.submitList(results)
+                        when (state.mode) {
+                            SearchViewModel.SearchMode.USERS -> {
+                                if (recyclerView.adapter !== userAdapter) recyclerView.adapter = userAdapter
+                                userAdapter.submitList(state.userResults)
+                            }
+
+                            SearchViewModel.SearchMode.PROJECTS -> {
+                                if (recyclerView.adapter !== projectAdapter) recyclerView.adapter = projectAdapter
+                                projectAdapter.submitList(state.projectResults)
+                            }
+                        }
 
                         val sanitizedQuery = state.query.trim().removePrefix("@")
+                        val resultsEmpty = when (state.mode) {
+                            SearchViewModel.SearchMode.USERS -> state.userResults.isEmpty()
+                            SearchViewModel.SearchMode.PROJECTS -> state.projectResults.isEmpty()
+                        }
+
                         when {
                             sanitizedQuery.isEmpty() -> {
                                 emptyStateText.visibility = View.VISIBLE
@@ -96,9 +129,13 @@ class SearchFragment : Fragment() {
                                 recyclerView.visibility = View.GONE
                             }
 
-                            results.isEmpty() -> {
+                            resultsEmpty -> {
                                 emptyStateText.visibility = View.VISIBLE
-                                emptyStateText.text = getString(R.string.search_no_results, sanitizedQuery)
+                                val noResString = when (state.mode) {
+                                    SearchViewModel.SearchMode.USERS -> R.string.search_no_users_results
+                                    SearchViewModel.SearchMode.PROJECTS -> R.string.search_no_projects_results
+                                }
+                                emptyStateText.text = getString(noResString, sanitizedQuery)
                                 recyclerView.visibility = View.GONE
                             }
 

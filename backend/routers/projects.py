@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 import crud
@@ -48,6 +48,18 @@ def create_project(
     project = crud.create_project(db, author_id=user_id, data=data)
     project = crud.get_project(db, project.id)
     return _attach_extra_fields(db, project, user_id)
+
+
+@router.get("/search", response_model=List[ProjectReadDTO])
+def search_projects(
+    user_id: OptionalCurrentUserId,
+    db: DbDep,
+    q: str = Query(..., min_length=1),
+    limit: int = 20,
+    offset: int = 0,
+):
+    projects = crud.search_projects(db, query=q, limit=limit, offset=offset)
+    return [_attach_extra_fields(db, p, user_id) for p in projects]
 
 
 @router.get("/{project_id}", response_model=ProjectReadDTO)

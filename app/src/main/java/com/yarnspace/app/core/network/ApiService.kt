@@ -60,6 +60,13 @@ interface ApiService {
     @GET("users/search")
     suspend fun searchUsers(@Query("q") query: String): List<UserPublicDto>
 
+    @GET("projects/search")
+    suspend fun searchProjects(
+        @Query("q") query: String,
+        @Query("limit") limit: Int = 20,
+        @Query("offset") offset: Int = 0,
+    ): List<ProjectReadDto>
+
     @GET("users/{username}")
     suspend fun getPublicProfile(@Path("username") username: String): ProfilePublicDto
 

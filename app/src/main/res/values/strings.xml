@@ -79,7 +79,8 @@
     <string name="search_filters_title">Project specification filters</string>
     <string name="search_filters_placeholder">(Filters UI will be added here)</string>
     <string name="search_empty_state">What are you looking for?</string>
-    <string name="search_no_results">No users found for \"%1$s\"</string>
+    <string name="search_no_users_results">No users found for \"%1$s\"</string>
+    <string name="search_no_projects_results">No projects found for \"%1$s\"</string>
 
     <string name="add_title">Add</string>
     <string name="add_tab_post">Post</string>
