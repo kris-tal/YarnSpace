@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import List, Optional
 
 from fastapi import HTTPException, status
@@ -204,7 +205,16 @@ def _escape_like(value: str) -> str:
     return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") # so % and _ are treated literally
 
 
-def search_projects(db: Session, *, query: str, limit: int = 20, offset: int = 0) -> List[models.Project]:
+def search_projects(
+    db: Session,
+    *,
+    query: str,
+    limit: int = 20,
+    offset: int = 0,
+    created_after: Optional[datetime] = None,
+    created_before: Optional[datetime] = None,
+    has_pattern_only: bool = False,
+) -> List[models.Project]:
     # prefix first then substring
 
     q = query.strip()
@@ -221,11 +231,21 @@ def search_projects(db: Session, *, query: str, limit: int = 20, offset: int = 0
         else_=0,
     )
 
+    stmt = select(models.Project).options(joinedload(models.Project.author)).where(
+        models.Project.title.ilike(substr_pat, escape="\\")
+    )
+
+    if created_after is not None:
+        stmt = stmt.where(models.Project.created_at >= created_after)
+    if created_before is not None:
+        stmt = stmt.where(models.Project.created_at <= created_before)
+
+    if has_pattern_only:
+        # Non-null and not blank after trimming.
+        stmt = stmt.where(func.length(func.trim(func.coalesce(models.Project.pattern, ""))) > 0)
+
     stmt = (
-        select(models.Project)
-        .options(joinedload(models.Project.author))
-        .where(models.Project.title.ilike(substr_pat, escape="\\"))
-        .order_by(score.desc(), func.length(models.Project.title).asc(), models.Project.created_at.desc())
+        stmt.order_by(score.desc(), func.length(models.Project.title).asc(), models.Project.created_at.desc())
         .limit(limit)
         .offset(offset)
     )

@@ -78,6 +78,11 @@
     <string name="search_username_tip">Tip: to search for a user, start with @</string>
     <string name="search_filters_title">Project specification filters</string>
     <string name="search_filters_placeholder">(Filters UI will be added here)</string>
+    <string name="search_filter_date_any">Any time</string>
+    <string name="search_filter_date_24h">Last 24h</string>
+    <string name="search_filter_date_7d">Last 7 days</string>
+    <string name="search_filter_date_30d">Last 30 days</string>
+    <string name="search_filter_has_pattern">Has pattern</string>
     <string name="search_empty_state">What are you looking for?</string>
     <string name="search_no_users_results">No users found for \"%1$s\"</string>
     <string name="search_no_projects_results">No projects found for \"%1$s\"</string>

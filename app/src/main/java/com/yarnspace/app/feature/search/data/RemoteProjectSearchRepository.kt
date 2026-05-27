@@ -11,12 +11,22 @@ class RemoteProjectSearchRepository @Inject constructor(
     private val apiService: ApiService,
 ) : ProjectSearchRepository {
 
-    override suspend fun searchProjects(query: String): List<FeedItem.Project> {
+    override suspend fun searchProjects(
+        query: String,
+        hasPatternOnly: Boolean,
+        createdAfterMillis: Long?,
+        createdBeforeMillis: Long?,
+    ): List<FeedItem.Project> {
         val q = query.trim()
         if (q.isBlank()) return emptyList()
 
         return try {
-            apiService.searchProjects(q).map { it.toFeedItemProject() }
+            apiService.searchProjects(
+                query = q,
+                hasPattern = hasPatternOnly.takeIf { it },
+                createdAfter = createdAfterMillis,
+                createdBefore = createdBeforeMillis,
+            ).map { it.toFeedItemProject() }
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()

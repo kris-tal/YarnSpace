@@ -14,6 +14,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.search.SearchView
 import com.yarnspace.app.R
@@ -45,6 +48,15 @@ class SearchFragment : Fragment() {
         val recyclerView = view.findViewById<RecyclerView>(R.id.searchResultsRecycler)
         val emptyStateText = view.findViewById<TextView>(R.id.searchEmptyState)
 
+        val chipGroupDateFilter = view.findViewById<ChipGroup>(R.id.chipGroupDateFilter)
+        val chipDate24h = view.findViewById<Chip>(R.id.chipDate24h)
+        val chipDate7d = view.findViewById<Chip>(R.id.chipDate7d)
+        val chipDate30d = view.findViewById<Chip>(R.id.chipDate30d)
+        val cbHasPattern = view.findViewById<MaterialCheckBox>(R.id.cbHasPattern)
+
+        var ignoreChipCallback = false
+        var ignorePatternCallback = false
+
         userAdapter = UserSearchAdapter { user ->
             val fragment = ProfileFragment.newPublicInstance(user)
 
@@ -73,6 +85,23 @@ class SearchFragment : Fragment() {
 
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = projectAdapter
+
+        cbHasPattern.setOnCheckedChangeListener { _, isChecked ->
+            if (ignorePatternCallback) return@setOnCheckedChangeListener
+            viewModel.onHasPatternOnlyChanged(isChecked)
+        }
+
+        chipGroupDateFilter.setOnCheckedStateChangeListener { _, checkedIds ->
+            if (ignoreChipCallback) return@setOnCheckedStateChangeListener
+            val checkedId = checkedIds.firstOrNull() ?: -1
+            val filter = when (checkedId) {
+                chipDate24h.id -> SearchViewModel.DateAddedFilter.LAST_24H
+                chipDate7d.id -> SearchViewModel.DateAddedFilter.LAST_7D
+                chipDate30d.id -> SearchViewModel.DateAddedFilter.LAST_30D
+                else -> SearchViewModel.DateAddedFilter.ANY
+            }
+            viewModel.onDateAddedFilterChanged(filter)
+        }
 
         searchView.editText.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -104,6 +133,32 @@ class SearchFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.uiState.collect { state ->
+                        val filtersVisible = state.mode == SearchViewModel.SearchMode.PROJECTS
+                        chipGroupDateFilter.visibility = if (filtersVisible) View.VISIBLE else View.GONE
+                        cbHasPattern.visibility = if (filtersVisible) View.VISIBLE else View.GONE
+
+                        // Keep chip selection in sync with state.
+                        // None selected == ANY.
+                        ignoreChipCallback = true
+                        when (state.dateAddedFilter) {
+                            SearchViewModel.DateAddedFilter.ANY -> {
+                                chipDate24h.isChecked = false
+                                chipDate7d.isChecked = false
+                                chipDate30d.isChecked = false
+                            }
+
+                            SearchViewModel.DateAddedFilter.LAST_24H -> chipDate24h.isChecked = true
+                            SearchViewModel.DateAddedFilter.LAST_7D -> chipDate7d.isChecked = true
+                            SearchViewModel.DateAddedFilter.LAST_30D -> chipDate30d.isChecked = true
+                        }
+                        ignoreChipCallback = false
+
+                        if (cbHasPattern.isChecked != state.hasPatternOnly) {
+                            ignorePatternCallback = true
+                            cbHasPattern.isChecked = state.hasPatternOnly
+                            ignorePatternCallback = false
+                        }
+
                         when (state.mode) {
                             SearchViewModel.SearchMode.USERS -> {
                                 if (recyclerView.adapter !== userAdapter) recyclerView.adapter = userAdapter

@@ -31,12 +31,22 @@ class SearchViewModel @Inject constructor(
         PROJECTS,
     }
 
+    enum class DateAddedFilter {
+        ANY,
+        LAST_24H,
+        LAST_7D,
+        LAST_30D,
+    }
+
     data class SearchUiState(
         val query: String = "",
         val mode: SearchMode = SearchMode.PROJECTS,
         val isLoading: Boolean = false,
         val userResults: List<UserSummary> = emptyList(),
         val projectResults: List<FeedItem.Project> = emptyList(),
+
+        val hasPatternOnly: Boolean = false,
+        val dateAddedFilter: DateAddedFilter = DateAddedFilter.ANY,
     )
 
     sealed interface SearchUiEvent {
@@ -50,6 +60,16 @@ class SearchViewModel @Inject constructor(
     val events: SharedFlow<SearchUiEvent> = _events.asSharedFlow()
 
     private var searchJob: Job? = null
+
+    fun onHasPatternOnlyChanged(value: Boolean) {
+        _uiState.value = _uiState.value.copy(hasPatternOnly = value)
+        onSearchQueryChanged(_uiState.value.query)
+    }
+
+    fun onDateAddedFilterChanged(value: DateAddedFilter) {
+        _uiState.value = _uiState.value.copy(dateAddedFilter = value)
+        onSearchQueryChanged(_uiState.value.query)
+    }
 
     fun onSearchQueryChanged(query: String) {
         searchJob?.cancel()
@@ -72,6 +92,8 @@ class SearchViewModel @Inject constructor(
 
         val modeAtStart = mode
         val sanitizedAtStart = sanitizedQuery
+        val hasPatternOnlyAtStart = _uiState.value.hasPatternOnly
+        val dateAddedFilterAtStart = _uiState.value.dateAddedFilter
 
         searchJob = viewModelScope.launch {
             delay(300)
@@ -101,7 +123,19 @@ class SearchViewModel @Inject constructor(
                     }
 
                     SearchMode.PROJECTS -> {
-                        val results = projectRepository.searchProjects(sanitizedAtStart)
+                        val createdAfterMillis: Long? = when (dateAddedFilterAtStart) {
+                            DateAddedFilter.ANY -> null
+                            DateAddedFilter.LAST_24H -> System.currentTimeMillis() - 24L * 60L * 60L * 1000L
+                            DateAddedFilter.LAST_7D -> System.currentTimeMillis() - 7L * 24L * 60L * 60L * 1000L
+                            DateAddedFilter.LAST_30D -> System.currentTimeMillis() - 30L * 24L * 60L * 60L * 1000L
+                        }
+
+                        val results = projectRepository.searchProjects(
+                            query = sanitizedAtStart,
+                            hasPatternOnly = hasPatternOnlyAtStart,
+                            createdAfterMillis = createdAfterMillis,
+                            createdBeforeMillis = null,
+                        )
                         if (!stillCurrent()) return@launch
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,

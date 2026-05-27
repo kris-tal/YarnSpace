@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, Query
@@ -55,10 +56,29 @@ def search_projects(
     user_id: OptionalCurrentUserId,
     db: DbDep,
     q: str = Query(..., min_length=1),
+    hasPattern: bool = Query(False),
+    createdAfter: int | None = Query(None, ge=0),
+    createdBefore: int | None = Query(None, ge=0),
     limit: int = 20,
     offset: int = 0,
 ):
-    projects = crud.search_projects(db, query=q, limit=limit, offset=offset)
+    created_after_dt: datetime | None = None
+    created_before_dt: datetime | None = None
+
+    if createdAfter is not None:
+        created_after_dt = datetime.fromtimestamp(createdAfter / 1000, tz=timezone.utc)
+    if createdBefore is not None:
+        created_before_dt = datetime.fromtimestamp(createdBefore / 1000, tz=timezone.utc)
+
+    projects = crud.search_projects(
+        db,
+        query=q,
+        limit=limit,
+        offset=offset,
+        created_after=created_after_dt,
+        created_before=created_before_dt,
+        has_pattern_only=hasPattern,
+    )
     return [_attach_extra_fields(db, p, user_id) for p in projects]
 
 

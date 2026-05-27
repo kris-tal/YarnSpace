@@ -63,6 +63,9 @@ interface ApiService {
     @GET("projects/search")
     suspend fun searchProjects(
         @Query("q") query: String,
+        @Query("hasPattern") hasPattern: Boolean? = null,
+        @Query("createdAfter") createdAfter: Long? = null,
+        @Query("createdBefore") createdBefore: Long? = null,
         @Query("limit") limit: Int = 20,
         @Query("offset") offset: Int = 0,
     ): List<ProjectReadDto>

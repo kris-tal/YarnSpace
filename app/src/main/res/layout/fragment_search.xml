@@ -49,13 +49,62 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupDateFilter"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                app:singleSelection="true"
+                app:selectionRequired="false"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDate24h"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/search_filter_date_24h" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDate7d"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/search_filter_date_7d" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipDate30d"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/search_filter_date_30d" />
+            </com.google.android.material.chip.ChipGroup>
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbHasPattern"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="16dp"
+                android:text="@string/search_filter_has_pattern"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/chipGroupDateFilter" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/searchResultsRecycler"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="0dp"
                 android:clipToPadding="false"
                 android:paddingTop="8dp"
-                android:paddingBottom="16dp" />
+                android:paddingBottom="16dp"
+                app:layout_constraintTop_toBottomOf="@id/cbHasPattern"
+                app:layout_constraintBottom_toBottomOf="parent" />
 
             <TextView
                 android:id="@+id/searchEmptyState"
