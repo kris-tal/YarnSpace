@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import HTTPException, status
-from sqlalchemy import select, func, delete, case
+from sqlalchemy import select, func, delete, case, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
@@ -154,6 +154,22 @@ def create_post(db: Session, *, author_id: int, content: Optional[str], image_ur
     db.refresh(post, attribute_names=["author"])
     if post.reblogged_project_id:
         db.refresh(post, attribute_names=["reblogged_project"])
+
+        # Notify the project author about a reblog (if not self).
+        try:
+            project = get_project(db, post.reblogged_project_id)
+            if project.author_id != author_id:
+                author = get_user_by_id(db, author_id)
+                create_notification(
+                    db,
+                    user_id=project.author_id,
+                    actor_id=author_id,
+                    type="reblog",
+                    message=f"{author.username} reblogged your project",
+                )
+        except Exception:
+            # Notifications should never break core functionality.
+            db.rollback()
     return post
 
 
@@ -309,6 +325,19 @@ def follow_user(db: Session, *, follower_id: int, followee_id: int) -> None:
     except IntegrityError:
         db.rollback()
 
+    # Notify followee.
+    try:
+        follower = get_user_by_id(db, follower_id)
+        create_notification(
+            db,
+            user_id=followee_id,
+            actor_id=follower_id,
+            type="follow",
+            message=f"{follower.username} followed you",
+        )
+    except Exception:
+        db.rollback()
+
 
 def unfollow_user(db: Session, *, follower_id: int, followee_id: int) -> None:
     stmt = delete(models.Follow).where(
@@ -327,6 +356,21 @@ def save_project(db: Session, *, user_id: int, project_id: int) -> None:
     except IntegrityError:
         db.rollback()
 
+    # Notify project author.
+    try:
+        project = get_project(db, project_id)
+        if project.author_id != user_id:
+            actor = get_user_by_id(db, user_id)
+            create_notification(
+                db,
+                user_id=project.author_id,
+                actor_id=user_id,
+                type="save_project",
+                message=f"{actor.username} saved your project",
+            )
+    except Exception:
+        db.rollback()
+
 
 def unsave_project(db: Session, *, user_id: int, project_id: int) -> None:
     stmt = delete(models.SavedProject).where(
@@ -335,3 +379,63 @@ def unsave_project(db: Session, *, user_id: int, project_id: int) -> None:
     )
     db.execute(stmt)
     db.commit()
+
+
+# ===========================================================
+#                       NOTIFICATIONS
+# ===========================================================
+
+
+def create_notification(
+    db: Session,
+    *,
+    user_id: int,
+    actor_id: Optional[int],
+    type: str,
+    message: str,
+) -> models.Notification:
+    notif = models.Notification(
+        user_id=user_id,
+        actor_id=actor_id,
+        type=type,
+        message=message,
+    )
+    db.add(notif)
+    db.commit()
+    db.refresh(notif)
+    return notif
+
+
+def list_notifications(db: Session, *, user_id: int, limit: int = 50, offset: int = 0) -> List[models.Notification]:
+    stmt = (
+        select(models.Notification)
+        .options(joinedload(models.Notification.actor))
+        .where(models.Notification.user_id == user_id)
+        .order_by(models.Notification.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    return list(db.execute(stmt).scalars().all())
+
+
+def count_unread_notifications(db: Session, *, user_id: int) -> int:
+    stmt = select(func.count()).select_from(models.Notification).where(
+        models.Notification.user_id == user_id,
+        models.Notification.read_at.is_(None),
+    )
+    return int(db.execute(stmt).scalar_one())
+
+
+def mark_all_notifications_read(db: Session, *, user_id: int) -> int:
+    now = datetime.now(timezone.utc)
+    stmt = (
+        update(models.Notification)
+        .where(models.Notification.user_id == user_id)
+        .where(models.Notification.read_at.is_(None))
+        .values(read_at=now)
+    )
+    res = db.execute(stmt)
+    db.commit()
+    return int(res.rowcount or 0)
+
+

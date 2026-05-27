@@ -121,4 +121,14 @@
     <string name="action_reblog">Reblog</string>
     <string name="action_save">Save</string>
 
+    <string name="notifs_title">Notifications</string>
+    <string name="notifs_empty">No notifications yet.</string>
+    <string name="notifs_mark_all_read">Mark all as read</string>
+
+    <!-- Background notification polling -->
+    <string name="notifs_unread_channel_name">Unread notifications</string>
+    <string name="notifs_unread_channel_description">Background alerts when you have unread notifications.</string>
+    <string name="notifs_unread_notification_title">You have unread notifications</string>
+    <string name="notifs_unread_notification_body">You have %1$d unread notification(s).</string>
+
 </resources>

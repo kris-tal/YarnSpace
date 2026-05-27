@@ -36,6 +36,20 @@ class User(Base):
         cascade="all, delete-orphan",
     )
 
+    notifications = relationship(
+        "Notification",
+        foreign_keys="Notification.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    notifications_sent = relationship(
+        "Notification",
+        foreign_keys="Notification.actor_id",
+        back_populates="actor",
+        cascade="all, delete-orphan",
+    )
+
 class Post(Base):
     __tablename__ = "posts"
 
@@ -96,3 +110,21 @@ class SavedProject(Base):
 
     user = relationship("User", back_populates="saved_project_links")
     project = relationship("Project", back_populates="saved_by_links")
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    actor_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
+
+    type = Column(String(50), nullable=False, index=True)
+    message = Column(String(280), nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    read_at = Column(DateTime(timezone=True), nullable=True)
+
+    user = relationship("User", foreign_keys=[user_id], back_populates="notifications")
+    actor = relationship("User", foreign_keys=[actor_id], back_populates="notifications_sent")
+

@@ -67,6 +67,10 @@ dependencies {
 
     implementation(libs.androidx.security.crypto)
 
+    // WorkManager (background polling)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.fragment)

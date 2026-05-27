@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from db import engine, Base
 import models
-from routers import auth, users, posts, projects, feed, media
+from routers import auth, users, posts, projects, feed, media, notifs
 
 app = FastAPI(
     title="YarnSpace API",
@@ -19,6 +19,7 @@ app.include_router(posts.router)
 app.include_router(projects.router)
 app.include_router(feed.router)
 app.include_router(media.router)
+app.include_router(notifs.router)
 
 os.makedirs("static/avatars", exist_ok=True)
 os.makedirs("static/uploads", exist_ok=True)

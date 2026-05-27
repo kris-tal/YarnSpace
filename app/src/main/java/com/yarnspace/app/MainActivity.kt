@@ -11,6 +11,7 @@ import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import com.yarnspace.app.feature.add.presentation.AddFragment
 import com.yarnspace.app.feature.feed.presentation.FeedFragment
 import com.yarnspace.app.feature.notifs.presentation.NotifsFragment
+import com.yarnspace.app.feature.notifs.work.NotifsWorkScheduler
 import com.yarnspace.app.feature.profile.presentation.ProfileFragment
 import com.yarnspace.app.feature.search.presentation.SearchFragment
 import com.yarnspace.app.main.NavigationController
@@ -46,6 +47,9 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var apiService: ApiService
 
+    @Inject
+    lateinit var notifsWorkScheduler: NotifsWorkScheduler
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -66,6 +70,7 @@ class MainActivity : AppCompatActivity() {
             themeSettingsRepository = themeSettingsRepository,
             sessionRepository = sessionRepository,
             apiService = apiService,
+            notifsWorkScheduler = notifsWorkScheduler,
             resources = resources,
             onLogout = ::logoutToAuth,
         )

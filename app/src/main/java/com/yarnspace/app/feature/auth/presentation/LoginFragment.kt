@@ -14,6 +14,7 @@ import com.yarnspace.app.R
 import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
+import com.yarnspace.app.feature.notifs.work.NotifsWorkScheduler
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -28,6 +29,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     @Inject
     lateinit var themeSettingsRepository: ThemeSettingsRepository
+
+    @Inject
+    lateinit var notifsWorkScheduler: NotifsWorkScheduler
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,6 +53,10 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                         try {
                             val authResponse = apiService.login(identifier, password)
                             TokenManager.saveToken(requireContext(), authResponse.accessToken)
+
+                            // Refresh immediately on login, then keep polling in background.
+                            notifsWorkScheduler.triggerUnreadCheckNow()
+                            notifsWorkScheduler.scheduleUnreadPolling()
 
                             themeSettingsRepository.setAccentColorName(authResponse.user.accentColor)
 

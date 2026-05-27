@@ -175,3 +175,38 @@ class ProfileUpdateDTO(BaseModel):
         max_length=500,
         validation_alias=AliasChoices("avatar_url", "avatarUrl"),
     )
+
+
+# ===========================================================
+#                       NOTIFICATIONS
+# ===========================================================
+
+
+class NotificationReadDTO(ORMBaseModel):
+    id: int
+    type: str
+    message: str
+    actor: Optional[UserPublicDTO] = None
+    createdAt: int = Field(validation_alias=AliasChoices("created_at", "createdAt"))
+    readAt: Optional[int] = Field(default=None, validation_alias=AliasChoices("read_at", "readAt"))
+
+    @field_validator("createdAt", mode="before")
+    @classmethod
+    def _parse_created_at(cls, v):
+        if isinstance(v, datetime):
+            return _datetime_to_millis(v)
+        return v
+
+    @field_validator("readAt", mode="before")
+    @classmethod
+    def _parse_read_at(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, datetime):
+            return _datetime_to_millis(v)
+        return v
+
+
+class UnreadCountDTO(BaseModel):
+    count: int
+
