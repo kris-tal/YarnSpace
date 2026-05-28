@@ -11,18 +11,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.yarnspace.app.R
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
-import com.yarnspace.app.feature.notifs.work.NotifsWorkScheduler
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class NotifsFragment : Fragment() {
-
-    @Inject
-    lateinit var notifsWorkScheduler: NotifsWorkScheduler
 
     private val viewModel: NotifsViewModel by viewModels()
 
@@ -39,9 +33,6 @@ class NotifsFragment : Fragment() {
         val adapter = NotifsAdapter()
         view.findViewById<RecyclerView>(R.id.rvNotifs).adapter = adapter
 
-        val btnMarkAllRead = view.findViewById<MaterialButton>(R.id.btnMarkAllRead)
-        btnMarkAllRead.setOnClickListener { viewModel.markAllRead() }
-
         val emptyView = view.findViewById<View>(R.id.tvNotifsEmpty)
         val loadingView = view.findViewById<View>(R.id.pbNotifsLoading)
 
@@ -49,7 +40,7 @@ class NotifsFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.uiState.collect { state ->
-                        adapter.submitList(state.items)
+                        adapter.submitNotifications(state.items)
                         emptyView.visibility = if (!state.isLoading && state.items.isEmpty()) View.VISIBLE else View.GONE
                         loadingView.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                     }
@@ -67,12 +58,13 @@ class NotifsFragment : Fragment() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        viewModel.markAsViewed()
+    }
+
     override fun onResume() {
         super.onResume()
-        // User opened the notifications panel -> refresh unread count immediately.
-        notifsWorkScheduler.triggerUnreadCheckNow()
-
-        // Also refresh the notifications list UI.
-        viewModel.refresh()
+        viewModel.sync()
     }
 }

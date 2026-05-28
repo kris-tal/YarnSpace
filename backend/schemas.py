@@ -185,7 +185,6 @@ class ProfileUpdateDTO(BaseModel):
 class NotificationReadDTO(ORMBaseModel):
     id: int
     type: str
-    message: str
     actor: Optional[UserPublicDTO] = None
     createdAt: int = Field(validation_alias=AliasChoices("created_at", "createdAt"))
     readAt: Optional[int] = Field(default=None, validation_alias=AliasChoices("read_at", "readAt"))

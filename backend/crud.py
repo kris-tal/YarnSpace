@@ -164,11 +164,9 @@ def create_post(db: Session, *, author_id: int, content: Optional[str], image_ur
                     db,
                     user_id=project.author_id,
                     actor_id=author_id,
-                    type="reblog",
-                    message=f"{author.username} reblogged your project",
+                    type="reblog"
                 )
         except Exception:
-            # Notifications should never break core functionality.
             db.rollback()
     return post
 
@@ -231,13 +229,13 @@ def search_projects(
     created_before: Optional[datetime] = None,
     has_pattern_only: bool = False,
 ) -> List[models.Project]:
-    # prefix first then substring
 
     q = query.strip()
     if not q:
         return []
 
     escaped = _escape_like(q)
+    # prefix first then substring
     prefix_pat = f"{escaped}%"
     substr_pat = f"%{escaped}%"
 
@@ -257,7 +255,6 @@ def search_projects(
         stmt = stmt.where(models.Project.created_at <= created_before)
 
     if has_pattern_only:
-        # Non-null and not blank after trimming.
         stmt = stmt.where(func.length(func.trim(func.coalesce(models.Project.pattern, ""))) > 0)
 
     stmt = (
@@ -332,8 +329,7 @@ def follow_user(db: Session, *, follower_id: int, followee_id: int) -> None:
             db,
             user_id=followee_id,
             actor_id=follower_id,
-            type="follow",
-            message=f"{follower.username} followed you",
+            type="follow"
         )
     except Exception:
         db.rollback()
@@ -365,8 +361,7 @@ def save_project(db: Session, *, user_id: int, project_id: int) -> None:
                 db,
                 user_id=project.author_id,
                 actor_id=user_id,
-                type="save_project",
-                message=f"{actor.username} saved your project",
+                type="save"
             )
     except Exception:
         db.rollback()
@@ -391,14 +386,12 @@ def create_notification(
     *,
     user_id: int,
     actor_id: Optional[int],
-    type: str,
-    message: str,
+    type: str
 ) -> models.Notification:
     notif = models.Notification(
         user_id=user_id,
         actor_id=actor_id,
-        type=type,
-        message=message,
+        type=type
     )
     db.add(notif)
     db.commit()

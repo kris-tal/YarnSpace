@@ -5,13 +5,7 @@ import com.yarnspace.app.feature.notifs.data.remote.dto.NotifDto
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
-
-/**
- * Feature-scoped API for notifications.
- *
- * NOTE: Backend endpoint must exist. This client assumes:
- *   GET /notifs/unread-count  ->  { "count": <int> }
- */
+import retrofit2.Response
 interface NotifsApi {
 
     @GET("notifs/unread-count")
@@ -24,7 +18,7 @@ interface NotifsApi {
     ): List<NotifDto>
 
     @POST("notifs/mark-all-read")
-    suspend fun markAllRead(): Map<String, Any>
+    suspend fun markAllRead(): Response<Unit>
 }
 
 

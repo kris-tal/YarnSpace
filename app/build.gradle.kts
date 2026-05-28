@@ -25,7 +25,7 @@ android {
             localPropsFile.inputStream().use(localProps::load)
         }
 
-        val rawBaseUrl = (localProps.getProperty("API_BASE_URL") ?: "http://10.0.2.2:8000/").trim()
+        val rawBaseUrl = (localProps.getProperty("API_BASE_URL") ?: "http://192.168.0.222:8000/").trim()
         val apiBaseUrl = if (rawBaseUrl.endsWith("/")) rawBaseUrl else "$rawBaseUrl/"
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
@@ -59,7 +59,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
-      implementation(libs.coil)
+    implementation(libs.coil)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -67,14 +67,14 @@ dependencies {
 
     implementation(libs.androidx.security.crypto)
 
-    // WorkManager (background polling)
-    implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.androidx.hilt.work)
-
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
     implementation(libs.androidx.hilt.navigation.fragment)
     ksp(libs.androidx.hilt.compiler)
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

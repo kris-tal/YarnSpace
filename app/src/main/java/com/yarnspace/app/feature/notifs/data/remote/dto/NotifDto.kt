@@ -7,12 +7,10 @@ data class NotifDto(
     val id: Long,
     @SerializedName("type")
     val type: String,
-    @SerializedName("message")
-    val message: String,
     @SerializedName("createdAt")
-    val createdAt: Long,
+    val createdAt: String,
     @SerializedName("readAt")
-    val readAt: Long?,
+    val readAt: String?,
     @SerializedName("actor")
     val actor: NotifActorDto?,
 )
@@ -29,4 +27,3 @@ data class NotifActorDto(
     @SerializedName("accentColor")
     val accentColor: String,
 )
-

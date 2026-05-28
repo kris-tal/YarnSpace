@@ -11,7 +11,6 @@ import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.core.auth.SessionRepository
 import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
-import com.yarnspace.app.feature.notifs.work.NotifsWorkScheduler
 import kotlinx.coroutines.launch
 
 class SettingsPanelController(
@@ -20,7 +19,6 @@ class SettingsPanelController(
     private val themeSettingsRepository: ThemeSettingsRepository,
     private val sessionRepository: SessionRepository,
     private val apiService: ApiService,
-    private val notifsWorkScheduler: NotifsWorkScheduler,
     private val resources: Resources,
     private val onLogout: () -> Unit,
 ) {
@@ -64,14 +62,12 @@ class SettingsPanelController(
                 } catch (e: Exception) {
                     e.printStackTrace()
                 } finally {
-                    notifsWorkScheduler.cancelUnreadPolling()
                     TokenManager.clearToken(context)
                     sessionRepository.clearSession()
                     themeSettingsRepository.clearAccentColor()
                     onLogout()
                 }
             } ?: run {
-                notifsWorkScheduler.cancelUnreadPolling()
                 TokenManager.clearToken(context)
                 sessionRepository.clearSession()
                 themeSettingsRepository.clearAccentColor()

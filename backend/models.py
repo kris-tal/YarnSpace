@@ -113,14 +113,13 @@ class SavedProject(Base):
 
 
 class Notification(Base):
-    __tablename__ = "notifications"
+    __tablename__ = "notifs"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     actor_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
 
-    type = Column(String(50), nullable=False, index=True)
-    message = Column(String(280), nullable=False)
+    type = Column(String(30), nullable=False, index=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     read_at = Column(DateTime(timezone=True), nullable=True)

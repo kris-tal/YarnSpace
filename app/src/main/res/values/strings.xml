@@ -123,12 +123,13 @@
 
     <string name="notifs_title">Notifications</string>
     <string name="notifs_empty">No notifications yet.</string>
-    <string name="notifs_mark_all_read">Mark all as read</string>
 
-    <!-- Background notification polling -->
-    <string name="notifs_unread_channel_name">Unread notifications</string>
-    <string name="notifs_unread_channel_description">Background alerts when you have unread notifications.</string>
-    <string name="notifs_unread_notification_title">You have unread notifications</string>
-    <string name="notifs_unread_notification_body">You have %1$d unread notification(s).</string>
+    <string name="notifs_unread">Unread ▲</string>
+
+    <string name="notif_follow">&lt;b&gt;%1$s&lt;/b&gt; followed you</string>
+    <string name="notif_reblog">&lt;b&gt;%1$s&lt;/b&gt; reblogged your project</string>
+    <string name="notif_save">&lt;b&gt;%1$s&lt;/b&gt; saved your project</string>
+    <string name="notif_unknown">New notification</string>
+    <string name="unknown_user">Unknown username</string>
 
 </resources>

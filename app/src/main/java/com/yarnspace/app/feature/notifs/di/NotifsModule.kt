@@ -3,8 +3,6 @@ package com.yarnspace.app.feature.notifs.di
 import com.yarnspace.app.feature.notifs.data.RemoteNotifsRepository
 import com.yarnspace.app.feature.notifs.data.remote.NotifsApi
 import com.yarnspace.app.feature.notifs.domain.NotifsRepository
-import com.yarnspace.app.feature.notifs.work.NotifsWorkScheduler
-import com.yarnspace.app.feature.notifs.work.WorkManagerNotifsWorkScheduler
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -31,9 +29,4 @@ abstract class NotifsBindingsModule {
     @Binds
     @Singleton
     abstract fun bindNotifsRepository(impl: RemoteNotifsRepository): NotifsRepository
-
-    @Binds
-    @Singleton
-    abstract fun bindNotifsWorkScheduler(impl: WorkManagerNotifsWorkScheduler): NotifsWorkScheduler
 }
-

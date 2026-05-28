@@ -6,11 +6,11 @@ import com.yarnspace.app.feature.notifs.domain.NotifsRepository
 import com.yarnspace.app.feature.notifs.domain.model.Notif
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,6 +18,22 @@ import javax.inject.Inject
 class NotifsViewModel @Inject constructor(
     private val repository: NotifsRepository,
 ) : ViewModel() {
+
+    private val _isSyncing = kotlinx.coroutines.flow.MutableStateFlow(false)
+
+    val uiState: StateFlow<NotifsUiState> = combine(
+        repository.getNotifications(),
+        _isSyncing
+    ) { notifications, syncing ->
+        NotifsUiState(
+            items = notifications,
+            isLoading = syncing
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = NotifsUiState()
+    )
 
     data class NotifsUiState(
         val items: List<Notif> = emptyList(),
@@ -28,35 +44,26 @@ class NotifsViewModel @Inject constructor(
         data class Error(val message: String) : NotifsUiEvent
     }
 
-    private val _uiState = MutableStateFlow(NotifsUiState())
-    val uiState: StateFlow<NotifsUiState> = _uiState.asStateFlow()
-
     private val _events = MutableSharedFlow<NotifsUiEvent>(extraBufferCapacity = 1)
-    val events: SharedFlow<NotifsUiEvent> = _events.asSharedFlow()
+    val events = _events.asSharedFlow()
 
-    fun refresh() {
+    fun sync() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _isSyncing.value = true
             try {
-                _uiState.value = _uiState.value.copy(items = repository.listMyNotifications())
+                repository.syncNotifications()
             } catch (e: Exception) {
                 e.printStackTrace()
-                _events.tryEmit(NotifsUiEvent.Error(e.message ?: "Failed to load notifications"))
+                _events.tryEmit(NotifsUiEvent.Error(e.message ?: "Failed to sync"))
             } finally {
-                _uiState.value = _uiState.value.copy(isLoading = false)
+                _isSyncing.value = false
             }
         }
     }
 
-    fun markAllRead() {
+    fun markAsViewed() {
         viewModelScope.launch {
             repository.markAllRead()
-                .onSuccess { refresh() }
-                .onFailure {
-                    it.printStackTrace()
-                    _events.tryEmit(NotifsUiEvent.Error(it.message ?: "Failed to mark notifications as read"))
-                }
         }
     }
 }
-
