@@ -7,5 +7,5 @@ data class UserPublicDto(
     @SerializedName("username") val username: String,
     @SerializedName("displayName") val displayName: String,
     @SerializedName("accentColor") val accentColor: String,
-    @SerializedName("avatarUrl") val avatarUrl: String? = null
+    @SerializedName("avatarIcon") val avatarIcon: String?
 )

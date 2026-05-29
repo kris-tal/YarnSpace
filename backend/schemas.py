@@ -22,9 +22,9 @@ class ORMBaseModel(BaseModel):
 class UserCreateDTO(BaseModel):
     username: str = Field(min_length=3, max_length=50)
     email: str = Field(max_length=120)
-    display_name: str = Field(min_length=1, max_length=50, validation_alias=AliasChoices("displayName", "display_name"), serialization_alias="displayName")
+    displayName: str = Field(min_length=1, max_length=50, validation_alias=AliasChoices("displayName", "display_name"))
     accentColor: str = Field(default="sage", validation_alias=AliasChoices("accent_color", "accentColor"))
-    avatarUrl: Optional[str] = Field(default=None, validation_alias=AliasChoices("avatar_url", "avatarUrl"))
+    avatarIcon: Optional[str] = Field(default=None, validation_alias=AliasChoices("avatar_icon", "avatarIcon"))
 
 
 class UserRegisterDTO(UserCreateDTO):
@@ -34,9 +34,9 @@ class UserRegisterDTO(UserCreateDTO):
 class UserPublicDTO(ORMBaseModel):
     id: int
     username: str
-    display_name: str = Field(validation_alias=AliasChoices("display_name", "displayName"), serialization_alias="displayName")
+    displayName: str = Field(validation_alias=AliasChoices("display_name", "displayName"))
     accentColor: str = Field(validation_alias=AliasChoices("accent_color", "accentColor"))
-    avatarUrl: Optional[str] = Field(default=None, validation_alias=AliasChoices("avatar_url", "avatarUrl"))
+    avatarIcon: Optional[str] = Field(default=None, validation_alias=AliasChoices("avatar_icon", "avatarIcon"))
 
 
 class UserPrivateDTO(UserPublicDTO):
@@ -145,10 +145,6 @@ class AuthResponseDTO(TokenDTO):
     user: UserPublicDTO
 
 
-class AccentColorUpdateDTO(BaseModel):
-    accentColor: "AccentColorEnum"
-
-
 class AccentColorEnum(str, Enum):
     sage = "sage"
     peach = "peach"
@@ -158,22 +154,27 @@ class AccentColorEnum(str, Enum):
     blue = "blue"
 
 
+class AccentColorUpdateDTO(BaseModel):
+    accentColor: AccentColorEnum = Field(validation_alias=AliasChoices("accent_color", "accentColor"))
+
+
 class ProfileUpdateDTO(BaseModel):
-    display_name: Optional[str] = Field(
+    displayName: Optional[str] = Field(
         default=None,
         min_length=1,
         max_length=50,
-        validation_alias=AliasChoices("displayName", "display_name"),
-        serialization_alias="displayName",
+        validation_alias=AliasChoices("displayName", "display_name")
     )
-    accentColor: Optional[AccentColorEnum] = Field(
+
+    accentColor: Optional[str] = Field(
         default=None,
-        validation_alias=AliasChoices("accent_color", "accentColor"),
+        validation_alias=AliasChoices("accentColor", "accent_color")
     )
-    avatarUrl: Optional[str] = Field(
+
+    avatarIcon: Optional[str] = Field(
         default=None,
-        max_length=500,
-        validation_alias=AliasChoices("avatar_url", "avatarUrl"),
+        max_length=50,
+        validation_alias=AliasChoices("avatarIcon", "avatar_icon")
     )
 
 
@@ -208,4 +209,3 @@ class NotificationReadDTO(ORMBaseModel):
 
 class UnreadCountDTO(BaseModel):
     count: int
-

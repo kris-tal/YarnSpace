@@ -52,16 +52,12 @@ class RemoteProfileRepository @Inject constructor(
         return apiService.updateMe(payload)
     }
 
-    override suspend fun uploadMyAvatar(file: MultipartBody.Part): String {
-        return apiService.uploadMyAvatar(file).avatarUrl
-    }
-
     private fun UserPublicDto.toUserSummary(): UserSummary {
         return UserSummary(
             id = id.toLong(),
             username = username,
             displayName = displayName,
-            avatarUrl = avatarUrl,
+            avatarIcon = avatarIcon,
             accentColor = accentColor,
         )
     }

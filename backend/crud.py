@@ -25,7 +25,7 @@ def create_user(
     display_name: str,
     accent_color: str,
     password_hash: str,
-    avatar_url: Optional[str] = None
+    avatar_icon: Optional[str] = None
 ) -> models.User:
 
     user = models.User(
@@ -34,7 +34,7 @@ def create_user(
         display_name=display_name,
         accent_color=accent_color,
         password_hash=password_hash,
-        avatar_url=avatar_url,
+        avatar_icon=avatar_icon,
     )
     db.add(user)
 
@@ -430,5 +430,3 @@ def mark_all_notifications_read(db: Session, *, user_id: int) -> int:
     res = db.execute(stmt)
     db.commit()
     return int(res.rowcount or 0)
-
-

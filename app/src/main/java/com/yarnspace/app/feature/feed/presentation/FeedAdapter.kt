@@ -1,6 +1,7 @@
 package com.yarnspace.app.feature.feed.presentation
 
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -8,16 +9,19 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.core.util.UrlUtils
-import com.yarnspace.app.theme.resolveAccentColorInt
+import com.yarnspace.app.theme.AccentColor
+import com.yarnspace.app.theme.AvatarIcon
 
 class FeedAdapter(
     private val onProjectClick: (FeedItem.Project) -> Unit,
@@ -53,12 +57,17 @@ class FeedAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val topBar: View = itemView.findViewById(R.id.llFeedItemTopBar)
+
+        private val cvAvatarContainer: MaterialCardView = itemView.findViewById(R.id.cvFeedItemAvatarContainer)
         private val ivAvatar: ImageView = itemView.findViewById(R.id.ivFeedItemAvatar)
+
         private val tvTimestamp: TextView = itemView.findViewById(R.id.tvFeedItemType)
         private val tvAuthor: TextView = itemView.findViewById(R.id.tvFeedItemAuthor)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvFeedItemTitle)
         private val tvContent: TextView = itemView.findViewById(R.id.tvFeedItemContent)
+
         private val ivImage: ImageView = itemView.findViewById(R.id.ivFeedItemImage)
+
         private val tvReblogNotice: TextView = itemView.findViewById(R.id.tvRebloggedNotice)
         private val llActions: View = itemView.findViewById(R.id.llFeedActions)
         private val btnReblog: ImageButton = itemView.findViewById(R.id.btnReblog)
@@ -74,23 +83,31 @@ class FeedAdapter(
             }
 
             tvAuthor.text = displayAuthor?.let { "@${it.username}" } ?: ""
-            val avatarUrl = UrlUtils.resolve(displayAuthor?.avatarUrl)
-            if (!avatarUrl.isNullOrBlank()) {
-                ivAvatar.load(avatarUrl) {
-                    placeholder(R.drawable.ic_default_avatar)
-                    error(R.drawable.ic_default_avatar)
-                }
-            } else {
-                val avatarRes = displayAuthor?.avatarResId ?: R.drawable.ic_default_avatar
-                ivAvatar.setImageResource(avatarRes)
-            }
+
+            val context = itemView.context
+            val isNightMode = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
             if (displayAuthor != null) {
-                val accentInt = displayAuthor.resolveAccentColorInt(itemView.context)
-                topBar.backgroundTintList = ColorStateList.valueOf(accentInt)
+                val theme = AccentColor.fromBackendName(displayAuthor.accentColor)
+
+                val topBarRes = if (isNightMode) theme.nightColorResId else theme.colorResId
+                topBar.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, topBarRes))
+
+                val bgColor = ContextCompat.getColor(context, theme.getLighterBg(isNightMode))
+                val iconColor = ContextCompat.getColor(context, theme.getDarkerIcon(isNightMode))
+
+                cvAvatarContainer.setCardBackgroundColor(bgColor)
+                ivAvatar.setColorFilter(iconColor)
+
+                val iconEnum = AvatarIcon.fromBackendName(displayAuthor.avatarIcon)
+                ivAvatar.setImageResource(iconEnum.resId)
+
             } else {
                 topBar.backgroundTintList = null
+                ivAvatar.setImageResource(R.drawable.ic_avatar_default)
+                ivAvatar.clearColorFilter()
             }
+            // ----------------------
 
             if (base != null) {
                 tvTimestamp.text = DateUtils.getRelativeTimeSpanString(
@@ -104,7 +121,7 @@ class FeedAdapter(
                 is FeedItem.Post -> {
                     if (item.rebloggedProject != null) {
                         tvReblogNotice.visibility = View.VISIBLE
-                        tvReblogNotice.text = itemView.context.getString(
+                        tvReblogNotice.text = context.getString(
                             R.string.feed_reblogged_notice,
                             item.author.displayName
                         )
@@ -121,7 +138,10 @@ class FeedAdapter(
 
                         llActions.visibility = View.VISIBLE
                         btnReblog.visibility = View.VISIBLE
-                        val activeTint = item.rebloggedProject.author.resolveAccentColorInt(itemView.context)
+
+                        val projectTheme = AccentColor.fromBackendName(item.rebloggedProject.author.accentColor)
+                        val activeTint = ContextCompat.getColor(context, if (isNightMode) projectTheme.nightColorResId else projectTheme.colorResId)
+
                         setupReblogButton(item.rebloggedProject, activeTint)
                         setupSaveButton(item.rebloggedProject, activeTint)
 
@@ -157,7 +177,10 @@ class FeedAdapter(
 
                     llActions.visibility = View.VISIBLE
                     btnReblog.visibility = View.VISIBLE
-                    val activeTint = item.author.resolveAccentColorInt(itemView.context)
+
+                    val projectTheme = AccentColor.fromBackendName(item.author.accentColor)
+                    val activeTint = ContextCompat.getColor(context, if (isNightMode) projectTheme.nightColorResId else projectTheme.colorResId)
+
                     setupReblogButton(item, activeTint)
                     setupSaveButton(item, activeTint)
 
@@ -219,4 +242,3 @@ class FeedAdapter(
         }
     }
 }
-

@@ -29,18 +29,26 @@
             android:src="@drawable/ic_arrow_back"
             app:tint="?attr/colorOnPrimary" />
 
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivProjectDetailsAvatar"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cvProjectDetailsAvatarContainer"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="10dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_default_avatar"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
-            app:strokeColor="?attr/colorOnPrimary"
-            app:strokeWidth="1dp" />
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/colorOnPrimary">
 
+            <ImageView
+                android:id="@+id/ivProjectDetailsAvatar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:scaleType="centerInside"
+                android:padding="6dp"
+                android:src="@drawable/ic_avatar_default" />
+        </com.google.android.material.card.MaterialCardView>
         <TextView
             android:id="@+id/tvProjectDetailsAuthor"
             android:layout_width="0dp"

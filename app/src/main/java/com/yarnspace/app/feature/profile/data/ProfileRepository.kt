@@ -4,7 +4,6 @@ import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
 import com.yarnspace.app.data.remote.dto.ProfileUpdateDto
 import com.yarnspace.app.data.remote.dto.UserPrivateDto
-import okhttp3.MultipartBody
 
 interface ProfileRepository {
     suspend fun getMeOrNull(): UserPrivateDto?
@@ -22,7 +21,5 @@ interface ProfileRepository {
     suspend fun unfollowUser(username: String)
 
     suspend fun updateMe(payload: ProfileUpdateDto): UserPrivateDto
-
-    suspend fun uploadMyAvatar(file: MultipartBody.Part): String
 }
 

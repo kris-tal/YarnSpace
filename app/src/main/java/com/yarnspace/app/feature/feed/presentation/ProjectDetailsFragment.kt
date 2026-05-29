@@ -1,6 +1,7 @@
 package com.yarnspace.app.feature.feed.presentation
 
 import android.content.res.ColorStateList
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,15 +9,18 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import coil.load
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.core.util.UrlUtils
-import com.yarnspace.app.theme.resolveAccentColorInt
+import com.yarnspace.app.theme.AccentColor
+import com.yarnspace.app.theme.AvatarIcon
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -27,7 +31,7 @@ class ProjectDetailsFragment : Fragment() {
         private const val ARG_PROJECT_TITLE = "arg_project_title"
         private const val ARG_PROJECT_AUTHOR_NAME = "arg_project_author_name"
         private const val ARG_PROJECT_AUTHOR_USERNAME = "arg_project_author_username"
-        private const val ARG_PROJECT_AUTHOR_AVATAR_URL = "arg_project_author_avatar_url"
+        private const val ARG_PROJECT_AUTHOR_AVATAR_ICON = "arg_project_author_avatar_icon" // ZMIENIONE Z URL NA ICON
         private const val ARG_PROJECT_AUTHOR_ACCENT_COLOR = "arg_project_author_accent_color"
         private const val ARG_PROJECT_CONTENT = "arg_project_content"
         private const val ARG_PROJECT_IMAGE_RES_ID = "arg_project_image_res_id"
@@ -48,7 +52,7 @@ class ProjectDetailsFragment : Fragment() {
                     putString(ARG_PROJECT_TITLE, project.title)
                     putString(ARG_PROJECT_AUTHOR_NAME, project.author.displayName)
                     putString(ARG_PROJECT_AUTHOR_USERNAME, project.author.username)
-                    putString(ARG_PROJECT_AUTHOR_AVATAR_URL, project.author.avatarUrl)
+                    putString(ARG_PROJECT_AUTHOR_AVATAR_ICON, project.author.avatarIcon) // ZMIENIONE
                     putString(ARG_PROJECT_AUTHOR_ACCENT_COLOR, project.author.accentColor)
                     putString(ARG_PROJECT_CONTENT, project.content ?: "")
 
@@ -85,8 +89,8 @@ class ProjectDetailsFragment : Fragment() {
                 id = -1,
                 username = args.getString(ARG_PROJECT_AUTHOR_USERNAME).orEmpty(),
                 displayName = args.getString(ARG_PROJECT_AUTHOR_NAME).orEmpty(),
-                avatarUrl = args.getString(ARG_PROJECT_AUTHOR_AVATAR_URL),
-                accentColor = args.getString(ARG_PROJECT_AUTHOR_ACCENT_COLOR),
+                avatarIcon = args.getString(ARG_PROJECT_AUTHOR_AVATAR_ICON), // ZMIENIONE
+                accentColor = args.getString(ARG_PROJECT_AUTHOR_ACCENT_COLOR).orEmpty(), // Upewniamy się, że nie ma nulla
             ),
             createdAt = 0,
             title = args.getString(ARG_PROJECT_TITLE).orEmpty(),
@@ -96,7 +100,6 @@ class ProjectDetailsFragment : Fragment() {
             isSavedByMe = isSaved,
             isRebloggedByMe = isReblogged
         )
-
     }
 
     override fun onCreateView(
@@ -120,9 +123,13 @@ class ProjectDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val context = requireContext()
+        val isNightMode = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        val authorTheme = AccentColor.fromBackendName(project.author.accentColor)
+
         view.findViewById<View>(R.id.projectDetailsTopBar)?.let { topBar ->
-            val accent = project.author.resolveAccentColorInt(requireContext())
-            topBar.backgroundTintList = ColorStateList.valueOf(accent)
+            val topBarRes = if (isNightMode) authorTheme.nightColorResId else authorTheme.colorResId
+            topBar.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, topBarRes))
         }
 
         view.findViewById<ImageButton>(R.id.btnProjectDetailsBack).setOnClickListener {
@@ -135,13 +142,20 @@ class ProjectDetailsFragment : Fragment() {
         view.findViewById<TextView>(R.id.tvProjectDetailsAuthor).text = "@${project.author.username}"
         view.findViewById<TextView>(R.id.tvProjectDetailsContent).text = project.content
 
-        view.findViewById<ImageView>(R.id.ivProjectDetailsAvatar).load(UrlUtils.resolve(project.author.avatarUrl)) {
-            placeholder(R.drawable.ic_default_avatar)
-            error(R.drawable.ic_default_avatar)
-        }
+        val cvAvatarContainer = view.findViewById<MaterialCardView>(R.id.cvProjectDetailsAvatarContainer)
+        val ivAvatar = view.findViewById<ImageView>(R.id.ivProjectDetailsAvatar)
+
+        val bgColor = ContextCompat.getColor(context, authorTheme.getLighterBg(isNightMode))
+        val iconColor = ContextCompat.getColor(context, authorTheme.getDarkerIcon(isNightMode))
+
+        cvAvatarContainer?.setCardBackgroundColor(bgColor)
+        ivAvatar.setColorFilter(iconColor)
+
+        val iconEnum = AvatarIcon.fromBackendName(project.author.avatarIcon)
+        ivAvatar.setImageResource(iconEnum.resId)
+
 
         val imageView = view.findViewById<ImageView>(R.id.ivProjectDetailsImage)
-
         val url = UrlUtils.resolve(project.imageUrl)
         when {
             url != null -> {
@@ -150,12 +164,10 @@ class ProjectDetailsFragment : Fragment() {
                     crossfade(true)
                 }
             }
-
             project.imageResId != null -> {
                 imageView.visibility = View.VISIBLE
                 imageView.setImageResource(project.imageResId!!)
             }
-
             else -> {
                 imageView.visibility = View.GONE
             }
@@ -215,4 +227,3 @@ class ProjectDetailsFragment : Fragment() {
         super.onStop()
     }
 }
-

@@ -22,11 +22,11 @@ class RemoteFeedRepository @Inject constructor(
             jsonElements.mapNotNull { element ->
                 val obj = element.asJsonObject
                 if (obj.has("title")) {
-                    //project
+                    // project
                     val dto = gson.fromJson(element, ProjectReadDto::class.java)
                     dto.toFeedItemProject()
                 } else {
-                    //post
+                    // post
                     val dto = gson.fromJson(element, PostReadDto::class.java)
                     dto.toFeedItemPost()
                 }
@@ -69,8 +69,8 @@ class RemoteFeedRepository @Inject constructor(
             id = id.toLong(),
             username = username,
             displayName = displayName,
-            avatarUrl = avatarUrl,
             accentColor = accentColor,
+            avatarIcon = avatarIcon
         )
     }
 

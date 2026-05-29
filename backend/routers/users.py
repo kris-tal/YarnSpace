@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-import shutil
-import uuid
-from pathlib import Path
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, Query, UploadFile, File, HTTPException, Request
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 import crud
@@ -83,68 +80,21 @@ def update_me(
 ):
     user = crud.get_user_by_id(db, user_id)
 
-    if payload.display_name is not None:
-        user.display_name = payload.display_name
+    # Tutaj naprawione: odwołujemy się do camelCase z Pydantica (payload),
+    # a przypisujemy do snake_case z SQLAlchemy (user)
+    if payload.displayName is not None:
+        user.display_name = payload.displayName
+
     if payload.accentColor is not None:
-        user.accent_color = payload.accentColor.value
-    if payload.avatarUrl is not None:
-        user.avatar_url = payload.avatarUrl
+        user.accent_color = payload.accentColor
+
+    if payload.avatarIcon is not None:
+        user.avatar_icon = payload.avatarIcon
 
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
-
-
-@router.post("/me/avatar")
-def upload_my_avatar(
-    user_id: CurrentUserId,
-    db: DbDep,
-    request: Request,
-    file: UploadFile = File(...),
-):
-    allowed_types = {"image/jpeg": ".jpg", "image/jpg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
-    if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Unsupported image type")
-
-    avatars_dir = Path(__file__).resolve().parent.parent / "static" / "avatars"
-    avatars_dir.mkdir(parents=True, exist_ok=True)
-
-    ext = allowed_types[file.content_type]
-    filename = f"{uuid.uuid4().hex}{ext}"
-    dest_path = avatars_dir / filename
-
-    try:
-        with dest_path.open("wb") as out:
-            shutil.copyfileobj(file.file, out)
-    finally:
-        file.file.close()
-
-    user = crud.get_user_by_id(db, user_id)
-    old = user.avatar_url
-    user.avatar_url = None
-    db.add(user)
-    db.commit()
-
-    rel_url = f"/static/avatars/{filename}"
-    base_url = str(request.base_url).rstrip("/")
-    avatar_url = f"{base_url}{rel_url}"
-
-    user.avatar_url = avatar_url
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-
-    if old and "/static/avatars/" in old:
-        try:
-            old_name = old.split("/static/avatars/")[-1]
-            old_path = avatars_dir / old_name
-            if old_path.exists():
-                old_path.unlink()
-        except Exception:
-            pass
-
-    return {"avatarUrl": avatar_url}
 
 
 @router.get("/search", response_model=List[UserPublicDTO])

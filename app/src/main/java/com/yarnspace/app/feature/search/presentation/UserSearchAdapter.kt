@@ -1,17 +1,20 @@
 package com.yarnspace.app.feature.search.presentation
 
+import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import com.google.android.material.card.MaterialCardView
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.UserSummary
-import com.yarnspace.app.core.util.UrlUtils
+import com.yarnspace.app.theme.AccentColor
+import com.yarnspace.app.theme.AvatarIcon
 
 class UserSearchAdapter(private val onUserClick: (UserSummary) -> Unit) :
     ListAdapter<UserSummary, UserSearchAdapter.VH>(Diff) {
@@ -38,7 +41,10 @@ class UserSearchAdapter(private val onUserClick: (UserSummary) -> Unit) :
         itemView: View,
         private val onUserClick: (UserSummary) -> Unit
     ) : RecyclerView.ViewHolder(itemView) {
+
+        private val cvAvatarContainer: MaterialCardView? = itemView.findViewById(R.id.cvUserAvatarContainer)
         private val ivAvatar: ImageView = itemView.findViewById(R.id.ivUserAvatar)
+
         private val tvDisplayName: TextView = itemView.findViewById(R.id.tvDisplayName)
         private val tvUsername: TextView = itemView.findViewById(R.id.tvUsername)
 
@@ -46,16 +52,18 @@ class UserSearchAdapter(private val onUserClick: (UserSummary) -> Unit) :
             tvDisplayName.text = user.displayName
             tvUsername.text = itemView.context.getString(R.string.username_format, user.username)
 
-            val avatarUrl = UrlUtils.resolve(user.avatarUrl)
-            if (!avatarUrl.isNullOrBlank()) {
-                ivAvatar.load(avatarUrl) {
-                    placeholder(R.drawable.ic_default_avatar)
-                    error(R.drawable.ic_default_avatar)
-                }
-            } else {
-                val avatarRes = user.avatarResId ?: R.drawable.ic_default_avatar
-                ivAvatar.setImageResource(avatarRes)
-            }
+            val context = itemView.context
+            val isNightMode = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
+            val userTheme = AccentColor.fromBackendName(user.accentColor)
+            val bgColor = ContextCompat.getColor(context, userTheme.getLighterBg(isNightMode))
+            val iconColor = ContextCompat.getColor(context, userTheme.getDarkerIcon(isNightMode))
+
+            cvAvatarContainer?.setCardBackgroundColor(bgColor)
+            ivAvatar.setColorFilter(iconColor)
+
+            val iconEnum = AvatarIcon.fromBackendName(user.avatarIcon)
+            ivAvatar.setImageResource(iconEnum.resId)
 
             itemView.setOnClickListener { onUserClick(user) }
         }

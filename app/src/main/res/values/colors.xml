@@ -10,12 +10,30 @@
     <color name="text_graphite">#2F2F2F</color>
     <color name="text_on_accent">#2F2A27</color>
 
+    <color name="lighter_accent_sage">#EAF0EA</color>
     <color name="accent_sage">#8FA88E</color>
+    <color name="darker_accent_sage">#394939</color>
+
+    <color name="lighter_accent_peach">#F7EDE5</color>
     <color name="accent_peach">#D5A478</color>
+    <color name="darker_accent_peach">#AB6729</color>
+
+    <color name="lighter_accent_lavender">#F0EBF7</color>
     <color name="accent_lavender">#B19CD9</color>
+    <color name="darker_accent_lavender">#614495</color>
+
+    <color name="lighter_accent_yellow">#FAF3E5</color>
     <color name="accent_yellow">#E9C46A</color>
+    <color name="darker_accent_yellow">#BD890D</color>
+
+    <color name="lighter_accent_pink">#F7ECF4</color>
     <color name="accent_pink">#D9A2CC</color>
+    <color name="darker_accent_pink">#995388</color>
+
+    <color name="lighter_accent_blue">#E5F1F9</color>
     <color name="accent_blue">#7ABBED</color>
+    <color name="darker_accent_blue">#2D70A6</color>
+
 
     <color name="icon_active">#4A5568</color>
     <color name="icon_inactive">#A0AAB5</color>
@@ -30,12 +48,30 @@
     <color name="text_night">#E0E0E0</color>
     <color name="text_on_accent_night">#2F2A27</color>
 
-    <color name="accent_sage_night">#78A375</color>
-    <color name="accent_peach_night">#E58F44</color>
-    <color name="accent_lavender_night">#9D73E6</color>
-    <color name="accent_yellow_night">#E9C46A</color>
-    <color name="accent_pink_night">#E667BD</color>
-    <color name="accent_blue_night">#3D9AF2</color>
+
+    <color name="lighter_accent_sage_night">#BCCCBB</color>
+    <color name="accent_sage_night">#758C73</color>
+    <color name="darker_accent_sage_night">#243324</color>
+
+    <color name="lighter_accent_peach_night">#EFC6A2</color>
+    <color name="accent_peach_night">#A97E59</color>
+    <color name="darker_accent_peach_night">#643207</color>
+
+    <color name="lighter_accent_lavender_night">#D1BDF4</color>
+    <color name="accent_lavender_night">#826BAB</color>
+    <color name="darker_accent_lavender_night">#34106F</color>
+
+    <color name="lighter_accent_yellow_night">#F4DEA6</color>
+    <color name="accent_yellow_night">#C1A664</color>
+    <color name="darker_accent_yellow_night">#956400</color>
+
+    <color name="lighter_accent_pink_night">#EDABD8</color>
+    <color name="accent_pink_night">#AB6795</color>
+    <color name="darker_accent_pink_night">#500939</color>
+
+    <color name="lighter_accent_blue_night">#8EC8FB</color>
+    <color name="accent_blue_night">#4179AD</color>
+    <color name="darker_accent_blue_night">#0C365D</color>
 
     <color name="icon_active_night">#E0E0E0</color>
     <color name="icon_inactive_night">#A0AAB5</color>

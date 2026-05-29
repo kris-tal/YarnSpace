@@ -17,7 +17,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MultipartBody
 import javax.inject.Inject
 
 @HiltViewModel
@@ -49,9 +48,7 @@ class ProfileViewModel @Inject constructor(
 
     sealed interface ProfileUiEvent {
         data class ShowSnackbar(val message: String) : ProfileUiEvent
-
         data object CloseEditPanel : ProfileUiEvent
-
         data class EditSaveFinished(val success: Boolean) : ProfileUiEvent
     }
 
@@ -112,18 +109,17 @@ class ProfileViewModel @Inject constructor(
     fun saveMyProfile(
         displayName: String,
         accentColor: String,
-        avatarFile: MultipartBody.Part?,
+        avatarIcon: String?,
     ) {
         if (_uiState.value.mode != ProfileMode.PRIVATE) return
 
         viewModelScope.launch {
             try {
-                val avatarUrl = if (avatarFile != null) repository.uploadMyAvatar(avatarFile) else null
                 val updated = repository.updateMe(
                     ProfileUpdateDto(
                         displayName = displayName,
                         accentColor = accentColor,
-                        avatarUrl = avatarUrl,
+                        avatarIcon = avatarIcon,
                     )
                 )
 
@@ -133,7 +129,7 @@ class ProfileViewModel @Inject constructor(
                         profile = current.copy(
                             displayName = updated.displayName,
                             accentColor = updated.accentColor,
-                            avatarUrl = updated.avatarUrl,
+                            avatarIcon = updated.avatarIcon
                         )
                     )
                 }
@@ -142,8 +138,8 @@ class ProfileViewModel @Inject constructor(
                     id = updated.id.toLong(),
                     username = updated.username,
                     displayName = updated.displayName,
-                    avatarUrl = updated.avatarUrl,
                     accentColor = updated.accentColor,
+                    avatarIcon = updated.avatarIcon
                 )
                 updateCachedAuthorAppearance(username = updated.username, updated = updatedSummary)
 
@@ -195,7 +191,7 @@ class ProfileViewModel @Inject constructor(
             }
 
             val viewingSelf = !myUsername.isNullOrBlank() &&
-                (requestedUsername == myUsername || resolvedMode == ProfileMode.PRIVATE)
+                    (requestedUsername == myUsername || resolvedMode == ProfileMode.PRIVATE)
             val finalUsername = if (resolvedMode == ProfileMode.PRIVATE) myUsername else requestedUsername
 
             if (finalUsername.isNullOrBlank()) {
@@ -294,4 +290,3 @@ class ProfileViewModel @Inject constructor(
         }
     }
 }
-

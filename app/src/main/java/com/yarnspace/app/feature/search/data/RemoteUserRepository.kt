@@ -16,7 +16,7 @@ class RemoteUserRepository @Inject constructor(
                     id = dto.id.toLong(),
                     username = dto.username,
                     displayName = dto.displayName,
-                    avatarUrl = dto.avatarUrl,
+                    avatarIcon = dto.avatarIcon,
                     accentColor = dto.accentColor
                 )
             }
@@ -26,4 +26,3 @@ class RemoteUserRepository @Inject constructor(
         }
     }
 }
-

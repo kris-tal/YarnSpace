@@ -10,7 +10,7 @@ class User(Base):
     email = Column(String(120), unique=True, nullable=False, index=True)
     display_name = Column(String(50), nullable=False)
     accent_color = Column(String(50), nullable=False, default="sage")
-    avatar_url = Column(String(500), nullable=True)
+    avatar_icon = Column(String(50), nullable=True, default="default")
 
     password_hash = Column(String(255), nullable=False)
 

@@ -10,7 +10,6 @@ import com.yarnspace.app.data.remote.dto.ProjectCreateDto
 import com.yarnspace.app.data.remote.dto.ProjectReadDto
 import com.yarnspace.app.data.remote.dto.UserPublicDto
 import com.yarnspace.app.data.remote.dto.UserPrivateDto
-import com.yarnspace.app.data.remote.dto.AvatarUploadResponseDto
 import com.yarnspace.app.data.remote.dto.ImageUploadResponseDto
 import okhttp3.MultipartBody
 import retrofit2.http.Body
@@ -44,12 +43,6 @@ interface ApiService {
 
     @PATCH("users/me")
     suspend fun updateMe(@Body payload: ProfileUpdateDto): UserPrivateDto
-
-    @Multipart
-    @POST("users/me/avatar")
-    suspend fun uploadMyAvatar(
-        @Part file: MultipartBody.Part,
-    ): AvatarUploadResponseDto
 
     @Multipart
     @POST("media/images")

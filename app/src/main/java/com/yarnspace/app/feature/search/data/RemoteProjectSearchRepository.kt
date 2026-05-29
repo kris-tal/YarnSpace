@@ -38,7 +38,7 @@ class RemoteProjectSearchRepository @Inject constructor(
             id = id.toLong(),
             username = username,
             displayName = displayName,
-            avatarUrl = avatarUrl,
+            avatarIcon = avatarIcon,
             accentColor = accentColor,
         )
     }
@@ -62,4 +62,3 @@ class RemoteProjectSearchRepository @Inject constructor(
         )
     }
 }
-
