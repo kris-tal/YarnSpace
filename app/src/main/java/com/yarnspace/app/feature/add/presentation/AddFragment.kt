@@ -4,7 +4,8 @@ import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import coil.load
@@ -17,6 +18,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.yarnspace.app.R
 import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.core.util.ImageUploadUtils
+import com.yarnspace.app.core.util.PhotoPickerHelper
 import com.yarnspace.app.data.remote.dto.PostCreateDto
 import com.yarnspace.app.data.remote.dto.ProjectCreateDto
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,11 +40,38 @@ class AddFragment : Fragment(R.layout.fragment_add) {
     private var currentTab: Tab = Tab.POST
     private var isInternalTabChange: Boolean = false
 
+    private lateinit var postPhotoHelper: PhotoPickerHelper
+    private lateinit var projectPhotoHelper: PhotoPickerHelper
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        postPhotoHelper = PhotoPickerHelper(this) { uri ->
+            if (uri != null) {
+                pickedPostImageUri = uri
+                view?.findViewById<TextView>(R.id.tvAddPostImageStatus)?.text = "Image selected"
+                val iv = view?.findViewById<ImageView>(R.id.ivAddPostImagePreview)
+                iv?.visibility = View.VISIBLE
+                iv?.load(uri)
+            }
+        }
+
+        projectPhotoHelper = PhotoPickerHelper(this) { uri ->
+            if (uri != null) {
+                pickedProjectImageUri = uri
+                view?.findViewById<TextView>(R.id.tvAddProjectImageStatus)?.text = "Image selected"
+                val iv = view?.findViewById<ImageView>(R.id.ivAddProjectImagePreview)
+                iv?.visibility = View.VISIBLE
+                iv?.load(uri)
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val toggleGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.addToggleGroup)
-        val tvAddMode = view.findViewById<android.widget.TextView>(R.id.tvAddMode)
+        val tvAddMode = view.findViewById<TextView>(R.id.tvAddMode)
 
         val btnTabPost = view.findViewById<MaterialButton>(R.id.add_tab_post)
         val btnTabProject = view.findViewById<MaterialButton>(R.id.add_tab_project)
@@ -52,14 +81,14 @@ class AddFragment : Fragment(R.layout.fragment_add) {
 
         val etPostContent = view.findViewById<TextInputEditText>(R.id.etAddPostContent)
         val btnAddPostImage = view.findViewById<View>(R.id.btnAddPostImage)
-        val tvPostImageStatus = view.findViewById<android.widget.TextView>(R.id.tvAddPostImageStatus)
-        val ivPostImagePreview = view.findViewById<android.widget.ImageView>(R.id.ivAddPostImagePreview)
+        val tvPostImageStatus = view.findViewById<TextView>(R.id.tvAddPostImageStatus)
+        val ivPostImagePreview = view.findViewById<ImageView>(R.id.ivAddPostImagePreview)
         val btnPublishPost = view.findViewById<View>(R.id.btnPublishPost)
 
         val etProjectTitle = view.findViewById<TextInputEditText>(R.id.etAddProjectTitle)
         val btnAddProjectImage = view.findViewById<View>(R.id.btnAddProjectImage)
-        val tvProjectImageStatus = view.findViewById<android.widget.TextView>(R.id.tvAddProjectImageStatus)
-        val ivProjectImagePreview = view.findViewById<android.widget.ImageView>(R.id.ivAddProjectImagePreview)
+        val tvProjectImageStatus = view.findViewById<TextView>(R.id.tvAddProjectImageStatus)
+        val ivProjectImagePreview = view.findViewById<ImageView>(R.id.ivAddProjectImagePreview)
         val etProjectContent = view.findViewById<TextInputEditText>(R.id.etAddProjectContent)
         val etProjectHookSize = view.findViewById<TextInputEditText>(R.id.etAddProjectHookSize)
         val etProjectPattern = view.findViewById<TextInputEditText>(R.id.etAddProjectPattern)
@@ -165,41 +194,30 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                 .show()
         }
 
+        fun showImageSourceDialog(helper: PhotoPickerHelper) {
+            val options = arrayOf("Camera", "Gallery")
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Choose Image Source")
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> helper.openCamera()
+                        1 -> helper.openGallery()
+                    }
+                }
+                .show()
+        }
+
         isInternalTabChange = true
         toggleGroup.check(R.id.add_tab_post)
         isInternalTabChange = false
         setTab(Tab.POST)
 
-        val pickPostImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            pickedPostImageUri = uri
-            if (uri == null) {
-                tvPostImageStatus.text = getString(R.string.add_image_not_selected)
-                ivPostImagePreview.visibility = View.GONE
-            } else {
-                tvPostImageStatus.text = "Image selected"
-                ivPostImagePreview.visibility = View.VISIBLE
-                ivPostImagePreview.load(uri)
-            }
-        }
-
-        val pickProjectImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            pickedProjectImageUri = uri
-            if (uri == null) {
-                tvProjectImageStatus.text = getString(R.string.add_image_not_selected)
-                ivProjectImagePreview.visibility = View.GONE
-            } else {
-                tvProjectImageStatus.text = "Image selected"
-                ivProjectImagePreview.visibility = View.VISIBLE
-                ivProjectImagePreview.load(uri)
-            }
-        }
-
         btnAddPostImage.setOnClickListener {
-            pickPostImageLauncher.launch("image/*")
+            showImageSourceDialog(postPhotoHelper)
         }
 
         btnAddProjectImage.setOnClickListener {
-            pickProjectImageLauncher.launch("image/*")
+            showImageSourceDialog(projectPhotoHelper)
         }
 
         toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -233,7 +251,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
         }
 
         fun navigateToProfile() {
-            parentFragmentManager.popBackStack()    //
+            parentFragmentManager.popBackStack()
         }
 
         btnPublishPost.setOnClickListener {
@@ -332,4 +350,3 @@ class AddFragment : Fragment(R.layout.fragment_add) {
         }
     }
 }
-
