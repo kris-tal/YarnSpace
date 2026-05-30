@@ -68,7 +68,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/action_reblog"
             android:padding="8dp"
-            android:src="@android:drawable/ic_menu_share"
+            android:src="@drawable/ic_reblogged"
             app:tint="?attr/colorOnPrimary" />
 
         <ImageButton
@@ -79,7 +79,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/action_save"
             android:padding="8dp"
-            android:src="@android:drawable/btn_star_big_off"
+            android:src="@drawable/ic_star_outline"
             app:tint="?attr/colorOnPrimary" />
 
     </LinearLayout>
@@ -123,7 +123,7 @@
                 android:contentDescription="@null"
                 android:scaleType="centerCrop"
                 android:visibility="gone"
-                android:src="@android:drawable/ic_menu_gallery" />
+                android:src="@drawable/ic_image" />
 
             <TextView
                 android:id="@+id/tvProjectDetailsSpecTitle"

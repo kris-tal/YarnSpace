@@ -121,6 +121,19 @@
                 android:layout_marginTop="28dp"
                 android:textAllCaps="false"
                 android:text="@string/settings_logout" />
+
+            <TextView
+                android:id="@+id/tv_credentials"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:alpha="0.6"
+                android:textColor="?attr/colorOnBackground"
+                android:text="@string/settings_icons_by_flaticon" />
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -133,7 +146,7 @@
         android:background="@android:color/transparent"
         android:contentDescription="@string/settings_open"
         android:elevation="12dp"
-        android:src="@android:drawable/ic_menu_preferences"
+        android:src="@drawable/ic_settings"
         app:tint="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/status_bar_background" />

@@ -74,7 +74,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:drawableStart="@android:drawable/ic_menu_share"
+                android:drawableStart="@drawable/ic_reblogged"
                 android:drawablePadding="8dp"
                 android:text="reblogged a project"
                 android:textSize="12sp"
@@ -96,7 +96,7 @@
                 android:layout_marginTop="10dp"
                 android:scaleType="centerCrop"
                 android:contentDescription="@null"
-                android:src="@android:drawable/ic_menu_gallery" />
+                android:src="@drawable/ic_image" />
 
             <TextView
                 android:id="@+id/tvFeedItemContent"
@@ -120,7 +120,7 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@android:drawable/ic_menu_share"
+                    android:src="@drawable/ic_reblogged"
                     app:tint="?attr/colorOnSurfaceVariant"
                     android:contentDescription="Reblog" />
 
@@ -129,7 +129,7 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:src="@android:drawable/btn_star_big_off"
+                    android:src="@drawable/ic_star_outline"
                     app:tint="?attr/colorOnSurfaceVariant"
                     android:contentDescription="Save" />
 

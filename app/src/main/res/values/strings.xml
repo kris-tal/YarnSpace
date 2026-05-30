@@ -29,6 +29,7 @@
     <string name="settings_logout">Log out</string>
     <string name="settings_open">Open settings</string>
     <string name="feed_title">Feed</string>
+    <string name="settings_icons_by_flaticon">Icons by Flaticon</string>
 
     <string name="feed_item_type_post">Post</string>
     <string name="feed_item_type_project">Project</string>
