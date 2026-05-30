@@ -155,21 +155,23 @@ class ProjectDetailsFragment : Fragment() {
         ivAvatar.setImageResource(iconEnum.resId)
 
 
+        val imageContainer = view.findViewById<MaterialCardView>(R.id.cvProjectDetailsImageContainer)
         val imageView = view.findViewById<ImageView>(R.id.ivProjectDetailsImage)
+
         val url = UrlUtils.resolve(project.imageUrl)
         when {
             url != null -> {
-                imageView.visibility = View.VISIBLE
+                imageContainer.visibility = View.VISIBLE
                 imageView.load(url) {
                     crossfade(true)
                 }
             }
             project.imageResId != null -> {
-                imageView.visibility = View.VISIBLE
+                imageContainer.visibility = View.VISIBLE
                 imageView.setImageResource(project.imageResId!!)
             }
             else -> {
-                imageView.visibility = View.GONE
+                imageContainer.visibility = View.GONE
             }
         }
 
