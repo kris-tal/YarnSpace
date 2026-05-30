@@ -2,7 +2,6 @@ package com.yarnspace.app.main
 import com.google.android.material.bottomnavigation.BottomNavigationView
 class NavigationController(
     private val bottomNavigationView: BottomNavigationView,
-    private val onBeforeNavigate: () -> Unit,
     private val onNavigate: (Int) -> Unit,
 ) {
     fun bind(defaultItemId: Int, restoreState: Boolean = false) {
@@ -14,7 +13,6 @@ class NavigationController(
         }
 
         bottomNavigationView.setOnItemSelectedListener { item ->
-            onBeforeNavigate()
             onNavigate(item.itemId)
             true
         }

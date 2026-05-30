@@ -18,16 +18,15 @@ data class SettingsPanelRefs(
 ) {
     companion object {
         fun from(activity: Activity): SettingsPanelRefs {
-            val darkModeSwitch = activity.findViewById<SwitchCompat>(R.id.switch_dark_mode)
+            val darkModeSwitch = activity.findViewById<SwitchCompat>(R.id.switchDarkMode)
             return SettingsPanelRefs(
-                settingsPanel = activity.findViewById(R.id.settings_panel),
-                settingsToggleButton = activity.findViewById(R.id.btn_settings_toggle),
-                customThemeSwitch = activity.findViewById(R.id.switch_custom_theme),
+                settingsPanel = activity.findViewById(R.id.settingsPanel),
+                settingsToggleButton = activity.findViewById(R.id.btnProfileSettings),
+                customThemeSwitch = activity.findViewById(R.id.switchCustomTheme),
                 darkModeSwitch = darkModeSwitch,
                 darkModeRow = darkModeSwitch.parent as LinearLayout,
-                logoutButton = activity.findViewById(R.id.btn_logout),
+                logoutButton = activity.findViewById(R.id.btnLogout),
             )
         }
     }
 }
-

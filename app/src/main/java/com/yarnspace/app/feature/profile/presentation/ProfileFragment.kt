@@ -1,5 +1,6 @@
 package com.yarnspace.app.feature.profile.presentation
 
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Bundle
@@ -29,16 +30,22 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
+import com.yarnspace.app.MainActivity
 import com.yarnspace.app.R
+import com.yarnspace.app.core.auth.SessionRepository
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
 import com.yarnspace.app.core.model.UserSummary
+import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.feature.feed.presentation.FeedAdapter
 import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
+import com.yarnspace.app.main.SettingsPanelController
+import com.yarnspace.app.main.SettingsPanelRefs
 import com.yarnspace.app.theme.AccentColor
 import com.yarnspace.app.theme.AccentThemeCoordinator
 import com.yarnspace.app.theme.AvatarIcon
+import com.yarnspace.app.AuthActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -54,6 +61,8 @@ class ProfileFragment : Fragment() {
         private const val ARG_PREFILL_DISPLAY_NAME = "arg_prefill_display_name"
         private const val ARG_PREFILL_AVATAR_ICON = "arg_prefill_avatar_icon"
         private const val ARG_PREFILL_ACCENT_COLOR = "arg_prefill_accent_color"
+
+        private const val STATE_SETTINGS_OPEN = "state_settings_open"
 
         fun newPublicInstance(user: UserSummary): ProfileFragment {
             return ProfileFragment().apply {
@@ -91,12 +100,17 @@ class ProfileFragment : Fragment() {
 
     @Inject
     lateinit var themeSettingsRepository: ThemeSettingsRepository
-
     @Inject
     lateinit var accentThemeCoordinator: AccentThemeCoordinator
+    @Inject
+    lateinit var sessionRepository: SessionRepository
+    @Inject
+    lateinit var apiService: ApiService
 
     private lateinit var adapter: FeedAdapter
     private var profileMode: ProfileViewModel.ProfileMode = ProfileViewModel.ProfileMode.PRIVATE
+
+    private lateinit var settingsController: SettingsPanelController
 
     // Przechowujemy aktualny kolor profilu w klasie, by mieć do niego dostęp w `applyTabStyles`
     private var currentProfileColor: Int? = null
@@ -111,16 +125,17 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val tvDisplayName = view.findViewById<TextView>(R.id.profile_display_name)
-        val tvUsername = view.findViewById<TextView>(R.id.profile_username_text)
-        val accentBlock = view.findViewById<View>(R.id.profile_accent_block)
+        val tvDisplayName = view.findViewById<TextView>(R.id.profileDisplayName)
+        val tvUsername = view.findViewById<TextView>(R.id.profileUsernameText)
+        val accentBlock = view.findViewById<View>(R.id.profileAccentBlock)
         val btnBack = view.findViewById<ImageButton>(R.id.btnProfileBack)
+        val btnSettings = view.findViewById<ImageButton>(R.id.btnProfileSettings)
         val btnEdit = view.findViewById<ImageButton>(R.id.btnProfileEdit)
         val btnFollow = view.findViewById<MaterialButton>(R.id.btnProfileFollow)
         val toggleGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.profileToggleGroup)
-        val btnProjects = view.findViewById<MaterialButton>(R.id.profile_filter_projects)
-        val btnPosts = view.findViewById<MaterialButton>(R.id.profile_filter_posts)
-        val btnSaved = view.findViewById<MaterialButton>(R.id.profile_filter_saved)
+        val btnProjects = view.findViewById<MaterialButton>(R.id.btnProfileFilterProjects)
+        val btnPosts = view.findViewById<MaterialButton>(R.id.btnProfileFilterPosts)
+        val btnSaved = view.findViewById<MaterialButton>(R.id.btnProfileFilterSaved)
         val tvFollowersCount = view.findViewById<TextView>(R.id.tvFollowersCount)
         val tvFollowingCount = view.findViewById<TextView>(R.id.tvFollowingCount)
         val tvPostsCount = view.findViewById<TextView>(R.id.tvPostsCount)
@@ -129,6 +144,38 @@ class ProfileFragment : Fragment() {
         // avatar main
         val cvAvatarContainer = view.findViewById<MaterialCardView>(R.id.cvAvatarContainer)
         val ivAvatar = view.findViewById<ImageView>(R.id.ivProfileAvatar)
+
+        // settings panel
+        val isSettingsOpen = savedInstanceState?.getBoolean(STATE_SETTINGS_OPEN, false) ?: false
+        val settingsRefs = SettingsPanelRefs(
+            settingsPanel = view.findViewById(R.id.settingsPanel),
+            settingsToggleButton = btnSettings,
+            customThemeSwitch = view.findViewById(R.id.switchCustomTheme),
+            darkModeSwitch = view.findViewById(R.id.switchDarkMode),
+            darkModeRow = view.findViewById(R.id.darkModeRow),
+            logoutButton = view.findViewById(R.id.btnLogout)
+        )
+
+        settingsController = SettingsPanelController(
+            context = requireContext(),
+            refs = settingsRefs,
+            themeSettingsRepository = themeSettingsRepository,
+            sessionRepository = sessionRepository,
+            apiService = apiService,
+            resources = resources,
+            onLogout = {
+                val intent = Intent(requireContext(), AuthActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+            }
+        )
+        settingsController.bind(isInitiallyOpen = isSettingsOpen)
+
+        // Znajdujemy przycisk X i podpinamy standardowe zamykanie modalnego panelu
+        val btnSettingsClose = view.findViewById<ImageButton>(R.id.btnSettingsClose)
+        btnSettingsClose?.setOnClickListener {
+            settingsController.closePanelIfOpen()
+        }
 
         // edit panel
         val editOverlay = view.findViewById<FrameLayout>(R.id.profileEditOverlay)
@@ -316,7 +363,9 @@ class ProfileFragment : Fragment() {
             viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (editOverlay.visibility == View.VISIBLE) {
+                    if (settingsController.isPanelOpen()) {
+                        settingsController.closePanelIfOpen()
+                    } else if (editOverlay.visibility == View.VISIBLE) {
                         closeEditPanel(force = false)
                     } else {
                         isEnabled = false
@@ -340,24 +389,33 @@ class ProfileFragment : Fragment() {
             } else {
                 button.backgroundTintList = ColorStateList.valueOf(surface)
                 button.setTextColor(onSurface)
-                button.strokeColor = ColorStateList.valueOf(primary)
-                button.strokeWidth = (1 * resources.displayMetrics.density).toInt()
+                //button.strokeColor = ColorStateList.valueOf(primary)
+                //button.strokeWidth = (2 * resources.displayMetrics.density).toInt()
             }
         }
 
         fun applyTabStyles() {
             val checkedId = toggleGroup.checkedButtonId
-            styleTabButton(btnPosts, selected = checkedId == R.id.profile_filter_posts)
-            styleTabButton(btnProjects, selected = checkedId == R.id.profile_filter_projects)
-            styleTabButton(btnSaved, selected = checkedId == R.id.profile_filter_saved)
+            styleTabButton(btnPosts, selected = checkedId == R.id.btnProfileFilterPosts)
+            styleTabButton(btnProjects, selected = checkedId == R.id.btnProfileFilterProjects)
+            styleTabButton(btnSaved, selected = checkedId == R.id.btnProfileFilterSaved)
         }
 
         applyTabStylesRef = ::applyTabStyles
 
         fun configureUiForMode(mode: ProfileViewModel.ProfileMode, isViewingSelf: Boolean = false) {
             profileMode = mode
+
+            // Pobieramy kolor ikon (jeśli ikony leżą na kolorowym tle accentBlock, używamy colorOnPrimary)
+            // (Jeśli leżą na zwykłym tle aplikacji, zmień colorOnPrimary na colorOnSurface)
+            val iconTint = MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnBackground)
+            btnSettings.imageTintList = ColorStateList.valueOf(iconTint)
+            btnEdit.imageTintList = ColorStateList.valueOf(iconTint)
+            btnBack.imageTintList = ColorStateList.valueOf(iconTint)
+
             when (mode) {
                 ProfileViewModel.ProfileMode.PRIVATE -> {
+                    btnSettings.visibility = View.VISIBLE
                     btnBack.visibility = View.GONE
                     btnEdit.visibility = View.VISIBLE
                     btnFollow.visibility = View.GONE
@@ -365,15 +423,16 @@ class ProfileFragment : Fragment() {
                     btnFollow.alpha = 1.0f
                 }
                 ProfileViewModel.ProfileMode.PUBLIC -> {
+                    btnSettings.visibility = View.GONE
                     btnBack.visibility = View.VISIBLE
                     btnEdit.visibility = View.GONE
                     btnFollow.visibility = View.VISIBLE
                     btnFollow.isEnabled = !isViewingSelf
-                    btnFollow.alpha = if (isViewingSelf) 0.5f else 1.0f
+                    //btnFollow.alpha = if (isViewingSelf) 0.5f else 1.0f
 
                     btnSaved.visibility = View.GONE
-                    if (toggleGroup.checkedButtonId == R.id.profile_filter_saved) {
-                        toggleGroup.check(R.id.profile_filter_posts)
+                    if (toggleGroup.checkedButtonId == R.id.btnProfileFilterSaved) {
+                        toggleGroup.check(R.id.btnProfileFilterPosts)
                     }
                 }
             }
@@ -390,13 +449,16 @@ class ProfileFragment : Fragment() {
         fun updateFollowButton(isFollowedByMe: Boolean?) {
             if (profileMode == ProfileViewModel.ProfileMode.PUBLIC && btnFollow.visibility == View.VISIBLE) {
                 val profileColor = currentProfileColor ?: MaterialColors.getColor(btnFollow, com.google.android.material.R.attr.colorPrimary)
+                val surface = MaterialColors.getColor(btnFollow, com.google.android.material.R.attr.colorSurface)
+                val onSurface = MaterialColors.getColor(btnFollow, com.google.android.material.R.attr.colorOnSurface)
 
                 if (isFollowedByMe == true) {
                     btnFollow.text = getString(R.string.profile_unfollow)
                     btnFollow.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), android.R.color.transparent))
-                    btnFollow.strokeColor = ColorStateList.valueOf(profileColor)
-                    btnFollow.strokeWidth = (1 * resources.displayMetrics.density).toInt()
-                    btnFollow.setTextColor(profileColor)
+                    //btnFollow.strokeColor = ColorStateList.valueOf(profileColor)
+                    //btnFollow.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                    btnFollow.backgroundTintList = ColorStateList.valueOf(surface)
+                    btnFollow.setTextColor(onSurface)
                 } else {
                     btnFollow.text = getString(R.string.profile_follow)
                     btnFollow.backgroundTintList = ColorStateList.valueOf(profileColor)
@@ -409,8 +471,8 @@ class ProfileFragment : Fragment() {
 
         fun currentTab(): ProfileViewModel.Tab {
             return when (toggleGroup.checkedButtonId) {
-                R.id.profile_filter_projects -> ProfileViewModel.Tab.PROJECTS
-                R.id.profile_filter_saved -> ProfileViewModel.Tab.SAVED
+                R.id.btnProfileFilterProjects -> ProfileViewModel.Tab.PROJECTS
+                R.id.btnProfileFilterSaved -> ProfileViewModel.Tab.SAVED
                 else -> ProfileViewModel.Tab.POSTS
             }
         }
@@ -512,9 +574,9 @@ class ProfileFragment : Fragment() {
         toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
             if (!isChecked) return@addOnButtonCheckedListener
             when (checkedId) {
-                R.id.profile_filter_posts -> viewModel.onTabSelected(ProfileViewModel.Tab.POSTS)
-                R.id.profile_filter_projects -> viewModel.onTabSelected(ProfileViewModel.Tab.PROJECTS)
-                R.id.profile_filter_saved -> if (profileMode == ProfileViewModel.ProfileMode.PRIVATE) viewModel.onTabSelected(ProfileViewModel.Tab.SAVED)
+                R.id.btnProfileFilterPosts -> viewModel.onTabSelected(ProfileViewModel.Tab.POSTS)
+                R.id.btnProfileFilterProjects -> viewModel.onTabSelected(ProfileViewModel.Tab.PROJECTS)
+                R.id.btnProfileFilterSaved -> if (profileMode == ProfileViewModel.ProfileMode.PRIVATE) viewModel.onTabSelected(ProfileViewModel.Tab.SAVED)
             }
             applyTabStyles()
         }
@@ -548,8 +610,8 @@ class ProfileFragment : Fragment() {
 
                         if (state.mode == ProfileViewModel.ProfileMode.PUBLIC) {
                             updateFollowButton(state.isFollowedByMe)
-                            if (toggleGroup.checkedButtonId == R.id.profile_filter_saved) {
-                                toggleGroup.check(R.id.profile_filter_posts)
+                            if (toggleGroup.checkedButtonId == R.id.btnProfileFilterSaved) {
+                                toggleGroup.check(R.id.btnProfileFilterPosts)
                             }
                         }
 
@@ -603,5 +665,20 @@ class ProfileFragment : Fragment() {
             forceMe = forceMe,
             initialTab = currentTab(),
         )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (::settingsController.isInitialized) {
+            settingsController.onResume()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Zapisujemy, czy panel ustawień był otwarty, żeby odtworzyć to po zmianie motywu!
+        if (::settingsController.isInitialized) {
+            outState.putBoolean(STATE_SETTINGS_OPEN, settingsController.isPanelOpen())
+        }
     }
 }

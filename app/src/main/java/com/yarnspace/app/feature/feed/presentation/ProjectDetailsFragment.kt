@@ -116,8 +116,8 @@ class ProjectDetailsFragment : Fragment() {
         // `MainActivity` ma globalny (nakładany) przycisk ustawień w prawym górnym rogu.
         // W widoku szczegółów mamy własny pasek akcji z ikonami reblog/save,
         // więc ukrywamy overlay, aby nie nachodził na te przyciski.
-        activity?.findViewById<View>(R.id.settings_panel)?.visibility = View.GONE
-        activity?.findViewById<View>(R.id.btn_settings_toggle)?.visibility = View.GONE
+        activity?.findViewById<View>(R.id.settingsPanel)?.visibility = View.GONE
+        activity?.findViewById<View>(R.id.btnProfileSettings)?.visibility = View.GONE
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -225,7 +225,7 @@ class ProjectDetailsFragment : Fragment() {
     }
 
     override fun onStop() {
-        activity?.findViewById<View>(R.id.btn_settings_toggle)?.visibility = View.VISIBLE
+        activity?.findViewById<View>(R.id.btnProfileSettings)?.visibility = View.VISIBLE
         super.onStop()
     }
 }

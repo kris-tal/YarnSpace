@@ -1,9 +1,14 @@
 package com.yarnspace.app.core.auth
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/* Needs further refactor */
-class SessionRepository(context: Context) {
+@Singleton
+class SessionRepository @Inject constructor(
+	@ApplicationContext context: Context
+) {
 
 	private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -24,5 +29,3 @@ class SessionRepository(context: Context) {
 		private const val KEY_ACCESS_TOKEN = "access_token"
 	}
 }
-
-

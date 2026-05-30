@@ -5,8 +5,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.yarnspace.app.core.auth.SessionRepository
-import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import com.yarnspace.app.feature.add.presentation.AddFragment
 import com.yarnspace.app.feature.feed.presentation.FeedFragment
@@ -14,8 +12,6 @@ import com.yarnspace.app.feature.notifs.presentation.NotifsFragment
 import com.yarnspace.app.feature.profile.presentation.ProfileFragment
 import com.yarnspace.app.feature.search.presentation.SearchFragment
 import com.yarnspace.app.main.NavigationController
-import com.yarnspace.app.main.SettingsPanelController
-import com.yarnspace.app.main.SettingsPanelRefs
 import com.yarnspace.app.theme.AccentThemeCoordinator
 import com.yarnspace.app.theme.ThemeModeCoordinator
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,26 +21,16 @@ import javax.inject.Inject
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        private const val STATE_SETTINGS_OPEN = "state_settings_open"
         private const val STATE_SELECTED_NAV_ITEM = "state_selected_nav_item"
     }
 
-    private lateinit var settingsController: SettingsPanelController
     private lateinit var navigationController: NavigationController
-
-    @Inject
-    lateinit var themeSettingsRepository: ThemeSettingsRepository
 
     @Inject
     lateinit var themeModeCoordinator: ThemeModeCoordinator
 
     @Inject
     lateinit var accentThemeCoordinator: AccentThemeCoordinator
-
-    private val sessionRepository by lazy { SessionRepository(this) }
-
-    @Inject
-    lateinit var apiService: ApiService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,26 +40,12 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        val isSettingsOpen = savedInstanceState?.getBoolean(STATE_SETTINGS_OPEN, false) ?: false
         val selectedItemId = savedInstanceState?.getInt(STATE_SELECTED_NAV_ITEM) ?: R.id.nav_feed
         val restoreNavigationState = savedInstanceState != null
-        val settingsRefs = SettingsPanelRefs.from(this)
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-
-        settingsController = SettingsPanelController(
-            context = this,
-            refs = settingsRefs,
-            themeSettingsRepository = themeSettingsRepository,
-            sessionRepository = sessionRepository,
-            apiService = apiService,
-            resources = resources,
-            onLogout = ::logoutToAuth,
-        )
-        settingsController.bind(isSettingsOpen)
 
         navigationController = NavigationController(
             bottomNavigationView = bottomNavigationView,
-            onBeforeNavigate = { settingsController.closePanelIfOpen() },
             onNavigate = ::handleBottomNavigation,
         )
         navigationController.bind(
@@ -82,14 +54,8 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
-    override fun onResume() {
-        super.onResume()
-        settingsController.onResume()
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean(STATE_SETTINGS_OPEN, settingsController.isPanelOpen())
         outState.putInt(STATE_SELECTED_NAV_ITEM, findViewById<BottomNavigationView>(R.id.bottom_navigation).selectedItemId)
     }
 
@@ -101,14 +67,6 @@ class MainActivity : AppCompatActivity() {
             R.id.nav_profile -> loadFragment(ProfileFragment())
             R.id.nav_notifs -> loadFragment(NotifsFragment())
         }
-    }
-
-    private fun logoutToAuth() {
-        val intent = Intent(this, AuthActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        startActivity(intent)
-        finish()
     }
 
     private fun loadFragment(fragment: Fragment) {
