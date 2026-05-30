@@ -49,7 +49,6 @@ class ProfileFragment : Fragment() {
     companion object {
         private const val ARG_USERNAME = "arg_username"
         private const val ARG_FORCE_ME = "arg_force_me"
-
         private const val ARG_PREFILL_ID = "arg_prefill_id"
         private const val ARG_PREFILL_USERNAME = "arg_prefill_username"
         private const val ARG_PREFILL_DISPLAY_NAME = "arg_prefill_display_name"
@@ -98,6 +97,9 @@ class ProfileFragment : Fragment() {
 
     private lateinit var adapter: FeedAdapter
     private var profileMode: ProfileViewModel.ProfileMode = ProfileViewModel.ProfileMode.PRIVATE
+
+    // Przechowujemy aktualny kolor profilu w klasie, by mieć do niego dostęp w `applyTabStyles`
+    private var currentProfileColor: Int? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -163,6 +165,7 @@ class ProfileFragment : Fragment() {
             val ctx = requireContext()
 
             val primaryColor = ContextCompat.getColor(ctx, if (isNight) theme.nightColorResId else theme.colorResId)
+            currentProfileColor = primaryColor
             accentBlock.backgroundTintList = ColorStateList.valueOf(primaryColor)
 
             val bgColor = ContextCompat.getColor(ctx, theme.getLighterBg(isNight))
@@ -325,7 +328,7 @@ class ProfileFragment : Fragment() {
         )
 
         fun styleTabButton(button: MaterialButton, selected: Boolean) {
-            val primary = MaterialColors.getColor(button, com.google.android.material.R.attr.colorPrimary)
+            val primary = currentProfileColor ?: MaterialColors.getColor(button, com.google.android.material.R.attr.colorPrimary)
             val onPrimary = MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnPrimary)
             val surface = MaterialColors.getColor(button, com.google.android.material.R.attr.colorSurface)
             val onSurface = MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnSurface)
@@ -386,7 +389,21 @@ class ProfileFragment : Fragment() {
 
         fun updateFollowButton(isFollowedByMe: Boolean?) {
             if (profileMode == ProfileViewModel.ProfileMode.PUBLIC && btnFollow.visibility == View.VISIBLE) {
-                btnFollow.text = if (isFollowedByMe == true) getString(R.string.profile_unfollow) else getString(R.string.profile_follow)
+                val profileColor = currentProfileColor ?: MaterialColors.getColor(btnFollow, com.google.android.material.R.attr.colorPrimary)
+
+                if (isFollowedByMe == true) {
+                    btnFollow.text = getString(R.string.profile_unfollow)
+                    btnFollow.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), android.R.color.transparent))
+                    btnFollow.strokeColor = ColorStateList.valueOf(profileColor)
+                    btnFollow.strokeWidth = (1 * resources.displayMetrics.density).toInt()
+                    btnFollow.setTextColor(profileColor)
+                } else {
+                    btnFollow.text = getString(R.string.profile_follow)
+                    btnFollow.backgroundTintList = ColorStateList.valueOf(profileColor)
+                    btnFollow.strokeWidth = 0
+                    val onPrimaryColor = MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnPrimary)
+                    btnFollow.setTextColor(onPrimaryColor)
+                }
             }
         }
 

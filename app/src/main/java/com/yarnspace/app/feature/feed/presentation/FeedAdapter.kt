@@ -91,7 +91,14 @@ class FeedAdapter(
                 val theme = AccentColor.fromBackendName(displayAuthor.accentColor)
 
                 val topBarRes = if (isNightMode) theme.nightColorResId else theme.colorResId
-                topBar.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, topBarRes))
+                val authorColor = ContextCompat.getColor(context, topBarRes)
+
+                topBar.backgroundTintList = ColorStateList.valueOf(authorColor)
+
+                // Pobieramy kolor kontrastujący (np. biały), żeby tekst był widoczny na kolorowym tle
+                val onPrimaryColor = MaterialColors.getColor(itemView, com.google.android.material.R.attr.colorOnPrimary)
+
+                tvAuthor.setTextColor(onPrimaryColor)
 
                 val bgColor = ContextCompat.getColor(context, theme.getLighterBg(isNightMode))
                 val iconColor = ContextCompat.getColor(context, theme.getDarkerIcon(isNightMode))
@@ -106,6 +113,7 @@ class FeedAdapter(
                 topBar.backgroundTintList = null
                 ivAvatar.setImageResource(R.drawable.ic_avatar_default)
                 ivAvatar.clearColorFilter()
+                cvAvatarContainer.strokeWidth = 0
             }
             // ----------------------
 
@@ -227,6 +235,7 @@ class FeedAdapter(
 
             val tint = if (isSaved) activeTint else MaterialColors.getColor(btnSave, com.google.android.material.R.attr.colorOnSurfaceVariant)
             btnSave.imageTintList = ColorStateList.valueOf(tint)
+            btnSave.imageAlpha = if (isSaved) 255 else 170
 
             btnSave.setOnClickListener { onSaveClick(project) }
         }
@@ -237,6 +246,7 @@ class FeedAdapter(
 
             val tint = if (isReblogged) activeTint else MaterialColors.getColor(btnReblog, com.google.android.material.R.attr.colorOnSurfaceVariant)
             btnReblog.imageTintList = ColorStateList.valueOf(tint)
+            btnReblog.imageAlpha = if (isReblogged) 255 else 170
 
             btnReblog.setOnClickListener { onReblogClick(project) }
         }
