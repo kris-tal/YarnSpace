@@ -155,7 +155,7 @@ def create_post(db: Session, *, author_id: int, content: Optional[str], image_ur
     if post.reblogged_project_id:
         db.refresh(post, attribute_names=["reblogged_project"])
 
-        # Notify the project author about a reblog (if not self).
+        # notify the project author about a reblog (if not self)
         try:
             project = get_project(db, post.reblogged_project_id)
             if project.author_id != author_id:
@@ -322,7 +322,7 @@ def follow_user(db: Session, *, follower_id: int, followee_id: int) -> None:
     except IntegrityError:
         db.rollback()
 
-    # Notify followee.
+    # notify followee
     try:
         follower = get_user_by_id(db, follower_id)
         create_notification(
@@ -352,7 +352,7 @@ def save_project(db: Session, *, user_id: int, project_id: int) -> None:
     except IntegrityError:
         db.rollback()
 
-    # Notify project author.
+    # notify project author
     try:
         project = get_project(db, project_id)
         if project.author_id != user_id:

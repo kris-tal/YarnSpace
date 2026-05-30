@@ -308,7 +308,6 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             }
             val payload = ProjectCreateDto(
                 title = title,
-                // will be replaced after upload
                 imageUrl = "",
                 content = blankToNull(raw(etProjectContent)),
                 hookSize = blankToNull(raw(etProjectHookSize)),

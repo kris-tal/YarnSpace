@@ -19,10 +19,6 @@ def upload_image(
     request: Request,
     file: UploadFile = File(...),
 ):
-    """Generic image upload for posts/projects.
-
-    Returns an absolute URL that can be stored in `imageUrl`.
-    """
 
     allowed_types = {
         "image/jpeg": ".jpg",
@@ -57,10 +53,8 @@ def upload_image(
         file.file.close()
 
     rel_url = f"/static/uploads/{filename}"
-    base_url = str(request.base_url).rstrip("/")
-    image_url = f"{base_url}{rel_url}"
 
-    return {"imageUrl": image_url}
+    return {"imageUrl": rel_url}
 
 
 
