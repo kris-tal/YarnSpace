@@ -15,10 +15,11 @@ def get_global_feed(
     db: Annotated[Session, Depends(get_db)],
     limit: int = 50
 ):
-    posts = crud.list_posts_by_user(db, user_id=None, limit=limit)
-    projects = crud.list_projects_by_user(db, user_id=None, limit=limit)
-
     from routers.users import _attach_extra_to_post, _attach_extra_to_project
+
+    if viewer_id is not None:
+        posts = crud.get_followed_posts(db, viewer_id=viewer_id, limit=limit)
+        projects = crud.get_followed_projects(db, viewer_id=viewer_id, limit=limit)
 
     feed = []
     for p in posts:

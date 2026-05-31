@@ -190,6 +190,13 @@ def get_post(db: Session, post_id: int) -> models.Post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post
 
+def get_followed_posts(db: Session, viewer_id: int, limit: int = 50):
+    followed_subquery = db.query(models.Follow.followee_id).filter(models.Follow.follower_id == viewer_id)
+
+    return db.query(models.Post).filter(
+        models.Post.author_id.in_(followed_subquery) | (models.Post.author_id == viewer_id)
+    ).order_by(models.Post.created_at.desc()).limit(limit).all()
+
 
 # ===========================================================
 #                          PROJECTS
@@ -271,6 +278,14 @@ def get_project(db: Session, project_id: int) -> models.Project:
     if not project:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
     return project
+
+
+def get_followed_projects(db: Session, viewer_id: int, limit: int = 50):
+    followed_subquery = db.query(models.Follow.followee_id).filter(models.Follow.follower_id == viewer_id)
+
+    return db.query(models.Project).filter(
+        models.Project.author_id.in_(followed_subquery) | (models.Project.author_id == viewer_id)
+    ).order_by(models.Project.created_at.desc()).limit(limit).all()
 
 
 def list_saved_projects(db: Session, *, user_id: int, limit: int = 20, offset: int = 0) -> List[models.Project]:
