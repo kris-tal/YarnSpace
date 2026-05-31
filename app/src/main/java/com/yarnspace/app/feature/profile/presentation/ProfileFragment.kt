@@ -47,6 +47,7 @@ import com.yarnspace.app.theme.AccentThemeCoordinator
 import com.yarnspace.app.theme.AvatarIcon
 import com.yarnspace.app.AuthActivity
 import com.yarnspace.app.core.audio.UiSoundManager
+import com.yarnspace.app.feature.notifs.domain.NotifsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -108,6 +109,8 @@ class ProfileFragment : Fragment() {
     @Inject
     lateinit var apiService: ApiService
     @Inject
+    lateinit var notifsRepository: NotifsRepository
+    @Inject
     lateinit var soundManager: UiSoundManager
 
     private lateinit var adapter: FeedAdapter
@@ -166,14 +169,18 @@ class ProfileFragment : Fragment() {
             apiService = apiService,
             resources = resources,
             onLogout = {
-                val intent = Intent(requireContext(), AuthActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(intent)
+                viewLifecycleOwner.lifecycleScope.launch {
+
+                    notifsRepository.clearLocalData()
+
+                    val intent = Intent(requireContext(), AuthActivity::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(intent)
+                }
             }
         )
         settingsController.bind(isInitiallyOpen = isSettingsOpen)
 
-        // Znajdujemy przycisk X i podpinamy standardowe zamykanie modalnego panelu
         val btnSettingsClose = view.findViewById<ImageButton>(R.id.btnSettingsClose)
         btnSettingsClose?.setOnClickListener {
             settingsController.closePanelIfOpen()
@@ -391,8 +398,6 @@ class ProfileFragment : Fragment() {
             } else {
                 button.backgroundTintList = ColorStateList.valueOf(surface)
                 button.setTextColor(onSurface)
-                //button.strokeColor = ColorStateList.valueOf(primary)
-                //button.strokeWidth = (2 * resources.displayMetrics.density).toInt()
             }
         }
 

@@ -23,4 +23,7 @@ interface NotifDao {
 
     @Query("DELETE FROM notifs WHERE readAt IS NOT NULL AND id NOT IN (SELECT id FROM notifs WHERE readAt IS NOT NULL ORDER BY createdAt DESC LIMIT 50)")
     fun deleteOldReadNotifications(): Int
+
+    @Query("DELETE FROM notifs")
+    fun deleteAll(): Int
 }

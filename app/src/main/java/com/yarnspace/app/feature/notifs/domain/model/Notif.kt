@@ -9,7 +9,7 @@ sealed interface Notif {
         override val id: Long,
         override val createdAt: Long,
         override val isRead: Boolean,
-        val followerUsername: String // Kto nas zaobserwował
+        val followerUsername: String
     ) : Notif
 
     data class Reblog(

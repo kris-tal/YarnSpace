@@ -94,4 +94,10 @@ class RemoteNotifsRepository @Inject constructor(
             else -> Notif.Unknown(id, createdAt, isRead)
         }
     }
+
+    override suspend fun clearLocalData() {
+        withContext(Dispatchers.IO) {
+            notifDao.deleteAll()
+        }
+    }
 }

@@ -8,4 +8,5 @@ interface NotifsRepository {
     suspend fun syncNotifications()
     suspend fun markAllRead(): Result<Unit>
     suspend fun getUnreadCount(): Int
+    suspend fun clearLocalData()
 }
