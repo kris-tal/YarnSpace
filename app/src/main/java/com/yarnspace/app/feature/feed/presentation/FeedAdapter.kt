@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -57,18 +58,18 @@ class FeedAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val topBar: View = itemView.findViewById(R.id.llFeedItemTopBar)
-
         private val cvAvatarContainer: MaterialCardView = itemView.findViewById(R.id.cvFeedItemAvatarContainer)
         private val ivAvatar: ImageView = itemView.findViewById(R.id.ivFeedItemAvatar)
-
         private val tvTimestamp: TextView = itemView.findViewById(R.id.tvFeedItemType)
         private val tvAuthor: TextView = itemView.findViewById(R.id.tvFeedItemAuthor)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvFeedItemTitle)
         private val tvContent: TextView = itemView.findViewById(R.id.tvFeedItemContent)
-
         private val ivImage: ImageView = itemView.findViewById(R.id.ivFeedItemImage)
 
-        private val tvReblogNotice: TextView = itemView.findViewById(R.id.tvRebloggedNotice)
+        private val llRebloggedNotice: LinearLayout = itemView.findViewById(R.id.llRebloggedNotice)
+        private val ivRebloggedNoticeIcon: ImageView = itemView.findViewById(R.id.ivRebloggedNoticeIcon)
+        private val tvRebloggedNoticeText: TextView = itemView.findViewById(R.id.tvRebloggedNoticeText)
+
         private val llActions: View = itemView.findViewById(R.id.llFeedActions)
         private val btnReblog: ImageButton = itemView.findViewById(R.id.btnReblog)
         private val btnSave: ImageButton = itemView.findViewById(R.id.btnSave)
@@ -95,7 +96,6 @@ class FeedAdapter(
 
                 topBar.backgroundTintList = ColorStateList.valueOf(authorColor)
 
-                // Pobieramy kolor kontrastujący (np. biały), żeby tekst był widoczny na kolorowym tle
                 val onPrimaryColor = MaterialColors.getColor(itemView, com.google.android.material.R.attr.colorOnPrimary)
 
                 tvAuthor.setTextColor(onPrimaryColor)
@@ -115,7 +115,6 @@ class FeedAdapter(
                 ivAvatar.clearColorFilter()
                 cvAvatarContainer.strokeWidth = 0
             }
-            // ----------------------
 
             if (base != null) {
                 tvTimestamp.text = DateUtils.getRelativeTimeSpanString(
@@ -128,11 +127,15 @@ class FeedAdapter(
             when (item) {
                 is FeedItem.Post -> {
                     if (item.rebloggedProject != null) {
-                        tvReblogNotice.visibility = View.VISIBLE
-                        tvReblogNotice.text = context.getString(
-                            R.string.feed_reblogged_notice,
-                            item.author.displayName
-                        )
+                        llRebloggedNotice.visibility = View.VISIBLE
+
+                        val projectTheme = AccentColor.fromBackendName(item.rebloggedProject.author.accentColor)
+                        val activeTint = ContextCompat.getColor(context, if (isNightMode) projectTheme.nightColorResId else projectTheme.colorResId)
+
+                        ivRebloggedNoticeIcon.imageTintList = ColorStateList.valueOf(activeTint)
+
+                        val authorUsername = item.author.username
+                        tvRebloggedNoticeText.text = "reblogged by @$authorUsername"
 
                         tvTitle.visibility = View.VISIBLE
                         tvTitle.text = item.rebloggedProject.title
@@ -147,16 +150,13 @@ class FeedAdapter(
                         llActions.visibility = View.VISIBLE
                         btnReblog.visibility = View.VISIBLE
 
-                        val projectTheme = AccentColor.fromBackendName(item.rebloggedProject.author.accentColor)
-                        val activeTint = ContextCompat.getColor(context, if (isNightMode) projectTheme.nightColorResId else projectTheme.colorResId)
-
                         setupReblogButton(item.rebloggedProject, activeTint)
                         setupSaveButton(item.rebloggedProject, activeTint)
 
                         itemView.setOnClickListener { onProjectClick(item.rebloggedProject) }
                         itemView.isClickable = true
                     } else {
-                        tvReblogNotice.visibility = View.GONE
+                        llRebloggedNotice.visibility = View.GONE
                         tvTitle.visibility = View.GONE
                         tvContent.text = item.content
                         llActions.visibility = View.GONE
@@ -172,7 +172,7 @@ class FeedAdapter(
                 }
 
                 is FeedItem.Project -> {
-                    tvReblogNotice.visibility = View.GONE
+                    llRebloggedNotice.visibility = View.GONE
                     tvTitle.visibility = View.VISIBLE
                     tvTitle.text = item.title
                     tvContent.text = item.content ?: ""
@@ -197,7 +197,7 @@ class FeedAdapter(
                 }
 
                 else -> {
-                    tvReblogNotice.visibility = View.GONE
+                    llRebloggedNotice.visibility = View.GONE
                     tvTitle.visibility = View.GONE
                     tvContent.text = ""
                     llActions.visibility = View.GONE

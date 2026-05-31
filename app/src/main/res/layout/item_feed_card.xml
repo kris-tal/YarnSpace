@@ -70,16 +70,32 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <TextView
-                android:id="@+id/tvRebloggedNotice"
+            <LinearLayout
+                android:id="@+id/llRebloggedNotice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
                 android:layout_marginBottom="8dp"
-                android:drawableStart="@drawable/ic_reblogged"
-                android:drawablePadding="8dp"
-                android:text="reblogged a project"
-                android:textSize="12sp"
-                android:visibility="gone" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/ivRebloggedNoticeIcon"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="6dp"
+                    android:src="@drawable/ic_reblogged"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:id="@+id/tvRebloggedNoticeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="reblogged by @username"
+                    android:textSize="12sp" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvFeedItemTitle"
