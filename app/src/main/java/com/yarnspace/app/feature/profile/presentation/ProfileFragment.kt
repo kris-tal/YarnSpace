@@ -46,6 +46,7 @@ import com.yarnspace.app.theme.AccentColor
 import com.yarnspace.app.theme.AccentThemeCoordinator
 import com.yarnspace.app.theme.AvatarIcon
 import com.yarnspace.app.AuthActivity
+import com.yarnspace.app.core.audio.UiSoundManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -106,13 +107,14 @@ class ProfileFragment : Fragment() {
     lateinit var sessionRepository: SessionRepository
     @Inject
     lateinit var apiService: ApiService
+    @Inject
+    lateinit var soundManager: UiSoundManager
 
     private lateinit var adapter: FeedAdapter
     private var profileMode: ProfileViewModel.ProfileMode = ProfileViewModel.ProfileMode.PRIVATE
 
     private lateinit var settingsController: SettingsPanelController
 
-    // Przechowujemy aktualny kolor profilu w klasie, by mieć do niego dostęp w `applyTabStyles`
     private var currentProfileColor: Int? = null
 
     override fun onCreateView(
@@ -406,8 +408,6 @@ class ProfileFragment : Fragment() {
         fun configureUiForMode(mode: ProfileViewModel.ProfileMode, isViewingSelf: Boolean = false) {
             profileMode = mode
 
-            // Pobieramy kolor ikon (jeśli ikony leżą na kolorowym tle accentBlock, używamy colorOnPrimary)
-            // (Jeśli leżą na zwykłym tle aplikacji, zmień colorOnPrimary na colorOnSurface)
             val iconTint = MaterialColors.getColor(view, com.google.android.material.R.attr.colorOnBackground)
             btnSettings.imageTintList = ColorStateList.valueOf(iconTint)
             btnEdit.imageTintList = ColorStateList.valueOf(iconTint)
@@ -455,8 +455,7 @@ class ProfileFragment : Fragment() {
                 if (isFollowedByMe == true) {
                     btnFollow.text = getString(R.string.profile_unfollow)
                     btnFollow.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), android.R.color.transparent))
-                    //btnFollow.strokeColor = ColorStateList.valueOf(profileColor)
-                    //btnFollow.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+
                     btnFollow.backgroundTintList = ColorStateList.valueOf(surface)
                     btnFollow.setTextColor(onSurface)
                 } else {
@@ -582,6 +581,15 @@ class ProfileFragment : Fragment() {
         }
 
         btnFollow.setOnClickListener {
+            if (viewModel.uiState.value.followInProgress) return@setOnClickListener
+
+            val isCurrentlyFollowing = viewModel.uiState.value.isFollowedByMe
+
+            if (isCurrentlyFollowing) {
+                soundManager.play(soundManager.soundUnfollow)
+            } else {
+                soundManager.play(soundManager.soundFollow)
+            }
             viewModel.onFollowClicked()
         }
 
@@ -676,7 +684,6 @@ class ProfileFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        // Zapisujemy, czy panel ustawień był otwarty, żeby odtworzyć to po zmianie motywu!
         if (::settingsController.isInitialized) {
             outState.putBoolean(STATE_SETTINGS_OPEN, settingsController.isPanelOpen())
         }

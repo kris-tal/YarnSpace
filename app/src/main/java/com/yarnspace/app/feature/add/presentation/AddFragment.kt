@@ -16,6 +16,7 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.yarnspace.app.R
+import com.yarnspace.app.core.audio.UiSoundManager
 import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.core.util.ImageUploadUtils
 import com.yarnspace.app.core.util.PhotoPickerHelper
@@ -31,6 +32,9 @@ class AddFragment : Fragment(R.layout.fragment_add) {
 
     @Inject
     lateinit var apiService: ApiService
+
+    @Inject
+    lateinit var soundManager: UiSoundManager
 
     private var pickedPostImageUri: Uri? = null
     private var pickedProjectImageUri: Uri? = null
@@ -255,6 +259,8 @@ class AddFragment : Fragment(R.layout.fragment_add) {
         }
 
         btnPublishPost.setOnClickListener {
+            soundManager.play(soundManager.soundCreate)
+
             val content = trimmed(etPostContent)
 
             if (content.isBlank()) {
@@ -295,6 +301,7 @@ class AddFragment : Fragment(R.layout.fragment_add) {
         }
 
         btnPublishProject.setOnClickListener {
+            soundManager.play(soundManager.soundCreate)
             val title = trimmed(etProjectTitle)
 
             if (pickedProjectImageUri == null) {

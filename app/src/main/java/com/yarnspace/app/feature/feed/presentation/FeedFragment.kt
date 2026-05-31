@@ -12,12 +12,17 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.yarnspace.app.R
 import com.google.android.material.snackbar.Snackbar
+import com.yarnspace.app.core.audio.UiSoundManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
     private val viewModel: FeedViewModel by viewModels()
+
+    @Inject
+    lateinit var soundManager: UiSoundManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -29,7 +34,6 @@ class FeedFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         val adapter = FeedAdapter(
             onProjectClick = { project ->
                 parentFragmentManager.beginTransaction()
@@ -38,9 +42,19 @@ class FeedFragment : Fragment() {
                     .commit()
             },
             onReblogClick = { project ->
+                soundManager.play(soundManager.soundReblog)
+                soundManager.play(soundManager.soundReblog)
+
                 viewModel.reblogProject(project)
             },
             onSaveClick = { project ->
+
+                if (project.isSavedByMe) {
+                    soundManager.play(soundManager.soundUnsave)
+                } else {
+                    soundManager.play(soundManager.soundSave)
+                }
+
                 viewModel.toggleSaveProject(project)
             }
         )
