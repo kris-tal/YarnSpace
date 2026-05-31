@@ -57,6 +57,8 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                 val iv = view?.findViewById<ImageView>(R.id.ivAddPostImagePreview)
                 iv?.visibility = View.VISIBLE
                 iv?.load(uri)
+
+                view?.findViewById<View>(R.id.btnRemovePostImage)?.visibility = View.VISIBLE
             }
         }
 
@@ -67,6 +69,8 @@ class AddFragment : Fragment(R.layout.fragment_add) {
                 val iv = view?.findViewById<ImageView>(R.id.ivAddProjectImagePreview)
                 iv?.visibility = View.VISIBLE
                 iv?.load(uri)
+
+                view?.findViewById<View>(R.id.btnRemoveProjectImage)?.visibility = View.VISIBLE
             }
         }
     }
@@ -87,12 +91,14 @@ class AddFragment : Fragment(R.layout.fragment_add) {
         val btnAddPostImage = view.findViewById<View>(R.id.btnAddPostImage)
         val tvPostImageStatus = view.findViewById<TextView>(R.id.tvAddPostImageStatus)
         val ivPostImagePreview = view.findViewById<ImageView>(R.id.ivAddPostImagePreview)
+        val btnRemovePostImage = view.findViewById<View>(R.id.btnRemovePostImage)
         val btnPublishPost = view.findViewById<View>(R.id.btnPublishPost)
 
         val etProjectTitle = view.findViewById<TextInputEditText>(R.id.etAddProjectTitle)
         val btnAddProjectImage = view.findViewById<View>(R.id.btnAddProjectImage)
         val tvProjectImageStatus = view.findViewById<TextView>(R.id.tvAddProjectImageStatus)
         val ivProjectImagePreview = view.findViewById<ImageView>(R.id.ivAddProjectImagePreview)
+        val btnRemoveProjectImage = view.findViewById<View>(R.id.btnRemoveProjectImage)
         val etProjectContent = view.findViewById<TextInputEditText>(R.id.etAddProjectContent)
         val etProjectHookSize = view.findViewById<TextInputEditText>(R.id.etAddProjectHookSize)
         val etProjectPattern = view.findViewById<TextInputEditText>(R.id.etAddProjectPattern)
@@ -101,6 +107,20 @@ class AddFragment : Fragment(R.layout.fragment_add) {
         val etProjectTimeToComplete = view.findViewById<TextInputEditText>(R.id.etAddProjectTimeToComplete)
         val etProjectAdditionalMaterials = view.findViewById<TextInputEditText>(R.id.etAddProjectAdditionalMaterials)
         val btnPublishProject = view.findViewById<View>(R.id.btnPublishProject)
+
+        btnRemovePostImage.setOnClickListener {
+            pickedPostImageUri = null
+            tvPostImageStatus.text = getString(R.string.add_image_not_selected)
+            ivPostImagePreview.visibility = View.GONE
+            btnRemovePostImage.visibility = View.GONE
+        }
+
+        btnRemoveProjectImage.setOnClickListener {
+            pickedProjectImageUri = null
+            tvProjectImageStatus.text = getString(R.string.add_image_not_selected)
+            ivProjectImagePreview.visibility = View.GONE
+            btnRemoveProjectImage.visibility = View.GONE
+        }
 
         fun raw(editText: TextInputEditText): String = editText.text?.toString().orEmpty()
         fun trimmed(editText: TextInputEditText): String = raw(editText).trim()
@@ -119,12 +139,9 @@ class AddFragment : Fragment(R.layout.fragment_add) {
             if (selected) {
                 button.backgroundTintList = ColorStateList.valueOf(primary)
                 button.setTextColor(onPrimary)
-                button.strokeWidth = 0
             } else {
                 button.backgroundTintList = ColorStateList.valueOf(surface)
                 button.setTextColor(onSurface)
-                button.strokeColor = ColorStateList.valueOf(primary)
-                button.strokeWidth = dpToPx(1)
             }
         }
 

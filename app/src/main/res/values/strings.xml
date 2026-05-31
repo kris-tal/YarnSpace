@@ -132,5 +132,6 @@
     <string name="notif_save">&lt;b&gt;%1$s&lt;/b&gt; saved your project</string>
     <string name="notif_unknown">New notification</string>
     <string name="unknown_user">Unknown username</string>
+    <string name="remove_image">Remove image</string>
 
 </resources>
