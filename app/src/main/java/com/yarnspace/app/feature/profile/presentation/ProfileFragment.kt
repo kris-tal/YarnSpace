@@ -504,11 +504,19 @@ class ProfileFragment : Fragment() {
             },
             onReblogClick = { project ->
                 feedViewModel.reblogProject(project)
-                if (currentTab() == ProfileViewModel.Tab.POSTS) viewModel.onTabSelected(ProfileViewModel.Tab.POSTS, force = true)
+                soundManager.play(soundManager.soundCreate)
+                viewModel.addReblogToCache(rebloggedProject = project)
             },
             onSaveClick = { project ->
                 feedViewModel.toggleSaveProject(project)
-                if (currentTab() == ProfileViewModel.Tab.SAVED) viewModel.onTabSelected(ProfileViewModel.Tab.SAVED, force = true)
+                val newSaveState = !project.isSavedByMe
+
+                if (project.isSavedByMe) {
+                    soundManager.play(soundManager.soundUnsave)
+                } else {
+                    soundManager.play(soundManager.soundSave)
+                }
+                viewModel.toggleSaveStateInCache(projectId = project.id, isSavedByMe = newSaveState)
             }
         )
         view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter

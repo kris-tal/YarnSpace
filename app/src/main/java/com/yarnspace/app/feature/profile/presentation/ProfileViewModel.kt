@@ -177,6 +177,74 @@ class ProfileViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(tabItems = newTabItems)
     }
 
+    fun toggleSaveStateInCache(projectId: Long, isSavedByMe: Boolean) {
+        val currentUiState = _uiState.value
+
+        val newTabItems = currentUiState.tabItems.mapValues { (tab, items) ->
+            if (tab == Tab.SAVED && !isSavedByMe) {
+                items.filter { item ->
+                    val id = when (item) {
+                        is FeedItem.Project -> item.id
+                        is FeedItem.Post -> item.rebloggedProject?.id
+                        else -> null
+                    }
+                    id != projectId
+                }
+            } else {
+                items.map { item ->
+                    when (item) {
+                        is FeedItem.Project -> {
+                            if (item.id == projectId) item.copy(isSavedByMe = isSavedByMe) else item
+                        }
+                        is FeedItem.Post -> {
+                            val updatedReblog = item.rebloggedProject?.let { rp ->
+                                if (rp.id == projectId) rp.copy(isSavedByMe = isSavedByMe) else rp
+                            }
+                            item.copy(rebloggedProject = updatedReblog)
+                        }
+                        else -> item
+                    }
+                }
+            }
+        }
+
+        _uiState.value = currentUiState.copy(tabItems = newTabItems)
+    }
+
+    fun addReblogToCache(rebloggedProject: FeedItem.Project) {
+        val currentUiState = _uiState.value
+        val myProfile = currentUiState.profile ?: return
+
+        val meAsAuthor = UserSummary(
+            id = myProfile.id.toLong(),
+            username = myProfile.username,
+            displayName = myProfile.displayName,
+            accentColor = myProfile.accentColor,
+            avatarIcon = myProfile.avatarIcon
+        )
+
+        val newReblogPost = FeedItem.Post(
+            id = System.currentTimeMillis(),
+            author = meAsAuthor,
+            content = null,
+            imageUrl = null,
+            createdAt = System.currentTimeMillis(),
+            rebloggedProject = rebloggedProject
+        )
+
+        val currentPosts = currentUiState.tabItems[Tab.POSTS].orEmpty()
+        val updatedPosts = mutableListOf<FeedItem>().apply {
+            add(newReblogPost)
+            addAll(currentPosts)
+        }
+
+        val newTabItems = currentUiState.tabItems.toMutableMap().apply {
+            put(Tab.POSTS, updatedPosts)
+        }
+
+        _uiState.value = currentUiState.copy(tabItems = newTabItems)
+    }
+
     private fun loadProfile(requestedUsername: String?, forceMe: Boolean) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingProfile = true)
