@@ -35,13 +35,13 @@
     <color name="darker_accent_blue">#2D70A6</color>
 
 
-    <color name="icon_active">#4A5568</color>
-    <color name="icon_inactive">#A0AAB5</color>
+    <color name="icon_active">#454545</color>
+    <color name="icon_inactive">#737272</color>
 
     <!-- night theme -->
     <color name="bg_night">#3A3532</color>
     <color name="bg_dimmed_night">#2F2A27</color>
-    <color name="bg_darker_night">#2C2625</color>
+    <color name="bg_darker_night">#24201E</color>
 
     <color name="dimm_effect_night">#211C1B</color>
 
@@ -73,6 +73,6 @@
     <color name="accent_blue_night">#4179AD</color>
     <color name="darker_accent_blue_night">#0C365D</color>
 
-    <color name="icon_active_night">#E0E0E0</color>
-    <color name="icon_inactive_night">#A0AAB5</color>
+    <color name="icon_active_night">#C3BFBF</color>
+    <color name="icon_inactive_night">#8E8D8D</color>
 </resources>
