@@ -369,6 +369,13 @@ class ProfileFragment : Fragment() {
                     soundManager.play(soundManager.soundSave)
                 }
                 viewModel.toggleSaveStateInCache(projectId = project.id, isSavedByMe = newSaveState)
+            },
+            onAuthorClick = { author ->
+                val profileFragment = ProfileFragment.newPublicInstance(author)
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.main_container, profileFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
         )
         view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter

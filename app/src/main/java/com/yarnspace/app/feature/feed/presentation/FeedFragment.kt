@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.yarnspace.app.R
 import com.google.android.material.snackbar.Snackbar
 import com.yarnspace.app.core.audio.UiSoundManager
+import com.yarnspace.app.feature.profile.presentation.ProfileFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -56,7 +57,15 @@ class FeedFragment : Fragment() {
                 }
 
                 viewModel.toggleSaveProject(project)
+            },
+            onAuthorClick = { author ->
+                val profileFragment = ProfileFragment.newPublicInstance(author)
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.main_container, profileFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
+
         )
 
         view.findViewById<RecyclerView>(R.id.rvFeed).adapter = adapter

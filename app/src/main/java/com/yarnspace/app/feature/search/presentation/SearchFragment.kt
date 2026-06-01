@@ -80,6 +80,13 @@ class SearchFragment : Fragment() {
             },
             onSaveClick = { project ->
                 viewModel.toggleSaveProject(project)
+            },
+            onAuthorClick = { author ->
+                val profileFragment = ProfileFragment.newPublicInstance(author)
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.main_container, profileFragment)
+                    .addToBackStack(null)
+                    .commit()
             }
         )
 

@@ -27,7 +27,8 @@ import com.yarnspace.app.theme.AvatarIcon
 class FeedAdapter(
     private val onProjectClick: (FeedItem.Project) -> Unit,
     private val onReblogClick: (FeedItem.Project) -> Unit,
-    private val onSaveClick: (FeedItem.Project) -> Unit
+    private val onSaveClick: (FeedItem.Project) -> Unit,
+    private val onAuthorClick: (UserSummary) -> Unit
 ) : ListAdapter<FeedItem, FeedAdapter.VH>(Diff) {
 
     object Diff : DiffUtil.ItemCallback<FeedItem>() {
@@ -43,7 +44,7 @@ class FeedAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_feed_card, parent, false)
-        return VH(view, onProjectClick, onReblogClick, onSaveClick)
+        return VH(view, onProjectClick, onReblogClick, onSaveClick, onAuthorClick) // <-- Przekazujemy onAuthorClick do ViewHoldera!
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
@@ -55,6 +56,7 @@ class FeedAdapter(
         private val onProjectClick: (FeedItem.Project) -> Unit,
         private val onReblogClick: (FeedItem.Project) -> Unit,
         private val onSaveClick: (FeedItem.Project) -> Unit,
+        private val onAuthorClick: (UserSummary) -> Unit // <-- Dodane do ViewHoldera
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val topBar: View = itemView.findViewById(R.id.llFeedItemTopBar)
@@ -81,6 +83,19 @@ class FeedAdapter(
                 is FeedItem.Post -> item.rebloggedProject?.author ?: item.author
                 is FeedItem.Project -> item.author
                 else -> base?.author
+            }
+
+            topBar.setOnClickListener {
+                val author = when (item) {
+                    is FeedItem.Post -> item.rebloggedProject?.author ?: item.author
+                    is FeedItem.Project -> item.author
+                    else -> (item as? FeedItem.Base)?.author
+                }
+
+                topBar.isEnabled = false
+                topBar.postDelayed({ topBar.isEnabled = true }, 500)
+
+                author?.let { onAuthorClick(it) }
             }
 
             tvAuthor.text = displayAuthor?.let { "@${it.username}" } ?: ""
