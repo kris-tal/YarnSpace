@@ -4,20 +4,14 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -30,24 +24,23 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
-import com.yarnspace.app.MainActivity
+import com.yarnspace.app.AuthActivity
 import com.yarnspace.app.R
+import com.yarnspace.app.core.audio.UiSoundManager
 import com.yarnspace.app.core.auth.SessionRepository
-import com.yarnspace.app.data.settings.ThemeSettingsRepository
-import com.yarnspace.app.data.remote.dto.ProfilePublicDto
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.core.network.ApiService
+import com.yarnspace.app.data.remote.dto.ProfilePublicDto
+import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import com.yarnspace.app.feature.feed.presentation.FeedAdapter
 import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
-import com.yarnspace.app.main.SettingsPanelController
-import com.yarnspace.app.main.SettingsPanelRefs
+import com.yarnspace.app.feature.notifs.domain.NotifsRepository
+import com.yarnspace.app.feature.profile.presentation.SettingsPanelController
+import com.yarnspace.app.feature.profile.presentation.SettingsPanelRefs
 import com.yarnspace.app.theme.AccentColor
 import com.yarnspace.app.theme.AccentThemeCoordinator
 import com.yarnspace.app.theme.AvatarIcon
-import com.yarnspace.app.AuthActivity
-import com.yarnspace.app.core.audio.UiSoundManager
-import com.yarnspace.app.feature.notifs.domain.NotifsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -117,6 +110,8 @@ class ProfileFragment : Fragment() {
     private var profileMode: ProfileViewModel.ProfileMode = ProfileViewModel.ProfileMode.PRIVATE
 
     private lateinit var settingsController: SettingsPanelController
+    private lateinit var editController: EditPanelController
+    private var pendingAccentToApplyGlobally: String? = null
 
     private var currentProfileColor: Int? = null
 
@@ -135,7 +130,6 @@ class ProfileFragment : Fragment() {
         val accentBlock = view.findViewById<View>(R.id.profileAccentBlock)
         val btnBack = view.findViewById<ImageButton>(R.id.btnProfileBack)
         val btnSettings = view.findViewById<ImageButton>(R.id.btnProfileSettings)
-        val btnEdit = view.findViewById<ImageButton>(R.id.btnProfileEdit)
         val btnFollow = view.findViewById<MaterialButton>(R.id.btnProfileFollow)
         val toggleGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.profileToggleGroup)
         val btnProjects = view.findViewById<MaterialButton>(R.id.btnProfileFilterProjects)
@@ -170,9 +164,7 @@ class ProfileFragment : Fragment() {
             resources = resources,
             onLogout = {
                 viewLifecycleOwner.lifecycleScope.launch {
-
                     notifsRepository.clearLocalData()
-
                     val intent = Intent(requireContext(), AuthActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)
@@ -186,28 +178,6 @@ class ProfileFragment : Fragment() {
             settingsController.closePanelIfOpen()
         }
 
-        // edit panel
-        val editOverlay = view.findViewById<FrameLayout>(R.id.profileEditOverlay)
-        val btnEditClose = view.findViewById<ImageButton>(R.id.btnProfileEditClose)
-
-        // avatar edit
-        val cvEditAvatarContainer = view.findViewById<MaterialCardView>(R.id.cvProfileEditAvatarContainer)
-        val ivEditAvatar = view.findViewById<ImageView>(R.id.ivProfileEditAvatar)
-
-        val llAvatarPickerContainer = view.findViewById<LinearLayout>(R.id.llAvatarPickerContainer)
-
-        val etEditDisplayName = view.findViewById<TextView>(R.id.etProfileEditDisplayName)
-        val accentGroup1 = view.findViewById<MaterialButtonToggleGroup>(R.id.profileEditAccentGroup)
-        val accentGroup2 = view.findViewById<MaterialButtonToggleGroup>(R.id.profileEditAccentGroup2)
-        val btnSave = view.findViewById<Button>(R.id.btnProfileEditSave)
-        val btnCancel = view.findViewById<Button>(R.id.btnProfileEditCancel)
-
-        var initialDisplayName = ""
-        var initialAccent: String = AccentColor.SAGE.backendName
-        var currentAccent: String = initialAccent
-        var pickedAvatarIcon: String? = null
-
-        var pendingAccentToApplyGlobally: String? = null
         var applyTabStylesRef: (() -> Unit)? = null
 
         fun loadAvatarIcon(imageView: ImageView, iconName: String?) {
@@ -230,142 +200,26 @@ class ProfileFragment : Fragment() {
             cvAvatarContainer?.setCardBackgroundColor(bgColor)
             ivAvatar?.setColorFilter(iconColor)
 
-            cvEditAvatarContainer?.setCardBackgroundColor(bgColor)
-            ivEditAvatar?.setColorFilter(iconColor)
-
             applyTabStylesRef?.invoke()
         }
 
-        fun isEditDirty(): Boolean {
-            val dn = etEditDisplayName.text?.toString().orEmpty().trim()
-            return dn != initialDisplayName.trim() || currentAccent != initialAccent || pickedAvatarIcon != null
-        }
+        // edit panel
+        editController = EditPanelController(
+            context = requireContext(),
+            view = view,
+            viewModel = viewModel,
+            onAccentPreview = { accentName -> applyAccentToProfile(accentName) },
+            onSavePendingGlobalAccent = { accentName -> pendingAccentToApplyGlobally = accentName }
+        )
 
-        fun setEditPanelVisible(visible: Boolean) {
-            editOverlay.visibility = if (visible) View.VISIBLE else View.GONE
-        }
-
-        fun confirmDiscard(onDiscard: () -> Unit) {
-            AlertDialog.Builder(requireContext())
-                .setTitle(getString(R.string.profile_edit_discard_title))
-                .setMessage(getString(R.string.profile_edit_discard_message))
-                .setPositiveButton(getString(R.string.profile_edit_discard_action_discard)) { _, _ -> onDiscard() }
-                .setNegativeButton(getString(R.string.profile_edit_discard_action_keep), null)
-                .show()
-        }
-
-        fun closeEditPanel(force: Boolean) {
-            if (!force && isEditDirty()) {
-                confirmDiscard { closeEditPanel(force = true) }
-                return
+        val btnEdit = view.findViewById<ImageButton>(R.id.btnProfileEdit)
+        btnEdit.setOnClickListener {
+            val profile = viewModel.uiState.value.profile
+            if (profile != null) {
+                editController.open(profile)
+            } else {
+                Snackbar.make(view, getString(R.string.error_loading_profile), Snackbar.LENGTH_SHORT).show()
             }
-            setEditPanelVisible(false)
-            pickedAvatarIcon = null
-            viewModel.uiState.value.profile?.let { applyAccentToProfile(it.accentColor) }
-        }
-
-        fun setAccentSelection(name: String) {
-            currentAccent = name
-            applyAccentToProfile(name)
-
-            val allButtons = listOf(
-                view.findViewById<MaterialButton>(R.id.btnAccentSage),
-                view.findViewById<MaterialButton>(R.id.btnAccentPeach),
-                view.findViewById<MaterialButton>(R.id.btnAccentLavender),
-                view.findViewById<MaterialButton>(R.id.btnAccentYellow),
-                view.findViewById<MaterialButton>(R.id.btnAccentPink),
-                view.findViewById<MaterialButton>(R.id.btnAccentBlue),
-            )
-            val target = allButtons.firstOrNull { it.tag == name }
-            if (target != null) {
-                if (target.parent == accentGroup1) {
-                    accentGroup2.clearChecked()
-                    accentGroup1.check(target.id)
-                } else {
-                    accentGroup1.clearChecked()
-                    accentGroup2.check(target.id)
-                }
-            }
-        }
-
-        fun styleAccentButtons() {
-            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-            fun style(buttonId: Int) {
-                val b = view.findViewById<MaterialButton>(buttonId)
-                val name = b.tag as? String ?: return
-                val theme = AccentColor.fromBackendName(name)
-
-                val resId = if (isNight) theme.nightColorResId else theme.colorResId
-                b.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), resId))
-                b.setTextColor(MaterialColors.getColor(b, com.google.android.material.R.attr.colorOnPrimary))
-            }
-
-            style(R.id.btnAccentSage)
-            style(R.id.btnAccentPeach)
-            style(R.id.btnAccentLavender)
-            style(R.id.btnAccentYellow)
-            style(R.id.btnAccentPink)
-            style(R.id.btnAccentBlue)
-        }
-
-        fun openEditPanel(profile: ProfilePublicDto) {
-            styleAccentButtons()
-
-            initialDisplayName = profile.displayName.takeIf { !it.isNullOrBlank() } ?: profile.username
-
-            initialAccent = AccentColor.fromBackendName(profile.accentColor).backendName
-
-            etEditDisplayName.text = initialDisplayName
-
-            pickedAvatarIcon = profile.avatarIcon
-            val currentIconEnum = AvatarIcon.fromBackendName(pickedAvatarIcon)
-            ivEditAvatar.setImageResource(currentIconEnum.resId)
-
-            setAccentSelection(initialAccent)
-
-            llAvatarPickerContainer.removeAllViews()
-
-            val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-            val currentTheme = AccentColor.fromBackendName(currentAccent)
-            val iconTint = ContextCompat.getColor(requireContext(), currentTheme.getDarkerIcon(isNight))
-            val bgTint = ContextCompat.getColor(requireContext(), currentTheme.getLighterBg(isNight))
-
-            AvatarIcon.entries.forEach { iconEnum ->
-                val cardView = com.google.android.material.card.MaterialCardView(requireContext()).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        (64 * resources.displayMetrics.density).toInt(),
-                        (64 * resources.displayMetrics.density).toInt()
-                    ).apply {
-                        marginEnd = (12 * resources.displayMetrics.density).toInt()
-                    }
-                    radius = (32 * resources.displayMetrics.density)
-                    cardElevation = 0f
-                    strokeWidth = 0
-                    setCardBackgroundColor(bgTint)
-
-                    setOnClickListener {
-                        pickedAvatarIcon = iconEnum.backendName
-                        ivEditAvatar.setImageResource(iconEnum.resId)
-                    }
-                }
-
-                val imageView = ImageView(requireContext()).apply {
-                    layoutParams = FrameLayout.LayoutParams(
-                        (32 * resources.displayMetrics.density).toInt(),
-                        (32 * resources.displayMetrics.density).toInt()
-                    ).apply {
-                        gravity = android.view.Gravity.CENTER
-                    }
-                    setImageResource(iconEnum.resId)
-                    setColorFilter(iconTint)
-                }
-
-                cardView.addView(imageView)
-                llAvatarPickerContainer.addView(cardView)
-            }
-
-            setEditPanelVisible(true)
         }
 
         requireActivity().onBackPressedDispatcher.addCallback(
@@ -374,8 +228,8 @@ class ProfileFragment : Fragment() {
                 override fun handleOnBackPressed() {
                     if (settingsController.isPanelOpen()) {
                         settingsController.closePanelIfOpen()
-                    } else if (editOverlay.visibility == View.VISIBLE) {
-                        closeEditPanel(force = false)
+                    } else if (editController.isPanelOpen()) {
+                        editController.closePanel(force = false)
                     } else {
                         isEnabled = false
                         requireActivity().onBackPressedDispatcher.onBackPressed()
@@ -433,7 +287,6 @@ class ProfileFragment : Fragment() {
                     btnEdit.visibility = View.GONE
                     btnFollow.visibility = View.VISIBLE
                     btnFollow.isEnabled = !isViewingSelf
-                    //btnFollow.alpha = if (isViewingSelf) 0.5f else 1.0f
 
                     btnSaved.visibility = View.GONE
                     if (toggleGroup.checkedButtonId == R.id.btnProfileFilterSaved) {
@@ -460,7 +313,6 @@ class ProfileFragment : Fragment() {
                 if (isFollowedByMe == true) {
                     btnFollow.text = getString(R.string.profile_unfollow)
                     btnFollow.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), android.R.color.transparent))
-
                     btnFollow.backgroundTintList = ColorStateList.valueOf(surface)
                     btnFollow.setTextColor(onSurface)
                 } else {
@@ -521,62 +373,6 @@ class ProfileFragment : Fragment() {
         )
         view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter
 
-        btnEdit.setOnClickListener {
-            val profile = viewModel.uiState.value.profile
-            if (profile != null) {
-                openEditPanel(profile)
-            } else {
-                Snackbar.make(view, getString(R.string.error_loading_profile), Snackbar.LENGTH_SHORT).show()
-            }
-        }
-
-        btnEditClose.setOnClickListener { closeEditPanel(force = false) }
-        btnCancel.setOnClickListener { closeEditPanel(force = false) }
-
-        accentGroup1.addOnButtonCheckedListener { group, checkedId, isChecked ->
-            if (!isChecked || checkedId == View.NO_ID) return@addOnButtonCheckedListener
-            accentGroup2.clearChecked()
-            val b = group.findViewById<MaterialButton>(checkedId)
-            val name = b.tag as? String ?: return@addOnButtonCheckedListener
-            currentAccent = name
-            applyAccentToProfile(name)
-        }
-
-        accentGroup2.addOnButtonCheckedListener { group, checkedId, isChecked ->
-            if (!isChecked || checkedId == View.NO_ID) return@addOnButtonCheckedListener
-            accentGroup1.clearChecked()
-            val b = group.findViewById<MaterialButton>(checkedId)
-            val name = b.tag as? String ?: return@addOnButtonCheckedListener
-            currentAccent = name
-            applyAccentToProfile(name)
-        }
-
-        etEditDisplayName.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) = Unit
-            override fun afterTextChanged(s: Editable?) = Unit
-        })
-
-        btnSave.setOnClickListener {
-            val displayName = etEditDisplayName.text?.toString().orEmpty().trim()
-            if (displayName.isBlank()) {
-                Snackbar.make(view, getString(R.string.error_fill_all_fields), Snackbar.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            pendingAccentToApplyGlobally = currentAccent
-
-            btnSave.isEnabled = false
-            btnCancel.isEnabled = false
-            btnEditClose.isEnabled = false
-
-            viewModel.saveMyProfile(
-                displayName = displayName,
-                accentColor = currentAccent,
-                avatarIcon = pickedAvatarIcon,
-            )
-        }
-
         btnBack.setOnClickListener {
             if (!parentFragmentManager.popBackStackImmediate()) {
                 activity?.onBackPressedDispatcher?.onBackPressed()
@@ -621,7 +417,7 @@ class ProfileFragment : Fragment() {
                             tvUsername.text = getString(R.string.username_format, profile.username)
                             updateCounts(profile)
 
-                            if (editOverlay.visibility != View.VISIBLE) {
+                            if (!editController.isPanelOpen()) {
                                 applyAccentToProfile(profile.accentColor)
                                 loadAvatarIcon(ivAvatar, profile.avatarIcon)
                             }
@@ -650,17 +446,13 @@ class ProfileFragment : Fragment() {
 
                             is ProfileViewModel.ProfileUiEvent.EditSaveFinished -> {
                                 if (!event.success) {
-                                    btnSave.isEnabled = true
-                                    btnCancel.isEnabled = true
-                                    btnEditClose.isEnabled = true
+                                    editController.setControlsEnabled(true)
                                 }
                             }
 
                             ProfileViewModel.ProfileUiEvent.CloseEditPanel -> {
-                                btnSave.isEnabled = true
-                                btnCancel.isEnabled = true
-                                btnEditClose.isEnabled = true
-                                closeEditPanel(force = true)
+                                editController.setControlsEnabled(true)
+                                editController.closePanel(force = true)
 
                                 val pending = pendingAccentToApplyGlobally
                                 pendingAccentToApplyGlobally = null

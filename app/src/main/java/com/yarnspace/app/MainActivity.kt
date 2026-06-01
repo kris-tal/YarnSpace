@@ -28,7 +28,6 @@ class MainActivity : AppCompatActivity() {
 
     @Inject
     lateinit var themeModeCoordinator: ThemeModeCoordinator
-
     @Inject
     lateinit var accentThemeCoordinator: AccentThemeCoordinator
 

@@ -1,4 +1,4 @@
-package com.yarnspace.app.main
+package com.yarnspace.app.feature.profile.presentation
 
 import android.app.Activity
 import android.widget.Button

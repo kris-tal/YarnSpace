@@ -330,7 +330,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingStart="24dp"
-                android:paddingTop="64dp"
+                android:paddingTop="16dp"
                 android:paddingEnd="24dp"
                 android:paddingBottom="24dp">
 
@@ -365,7 +365,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:layout_marginTop="32dp"
+                    android:layout_marginTop="24dp"
                     android:orientation="vertical">
 
                     <com.google.android.material.card.MaterialCardView
@@ -505,21 +505,32 @@
                         android:textAllCaps="false" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnProfileEditSave"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:textAllCaps="false"
-                    android:text="@string/profile_edit_save" />
+                    android:layout_marginTop="24dp"
+                    android:orientation="horizontal">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnProfileEditCancel"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textAllCaps="false"
-                    android:text="@string/profile_edit_cancel" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnProfileEditCancel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/profile_edit_cancel"
+                        android:textAllCaps="false"
+                        android:backgroundTint="?attr/colorSurface"
+                        android:textColor="?attr/colorOnSurface"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnProfileEditSave"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/profile_edit_save"
+                        android:textAllCaps="false" />
+                </LinearLayout>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
@@ -565,7 +576,7 @@
                     android:layout_width="40dp"
                     android:layout_height="40dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Zamknij ustawienia"
+                    android:contentDescription="Close Settings"
                     android:src="@drawable/ic_settings"
                     app:tint="?attr/colorOnBackground"
                     tools:ignore="TouchTargetSizeCheck" />
