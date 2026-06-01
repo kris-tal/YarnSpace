@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.yarnspace.app.R
 import com.google.android.material.snackbar.Snackbar
 import com.yarnspace.app.core.audio.UiSoundManager
+import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.feature.profile.presentation.ProfileFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -22,6 +23,8 @@ import javax.inject.Inject
 class FeedFragment : Fragment() {
     private val viewModel: FeedViewModel by viewModels()
 
+    @Inject
+    lateinit var tokenManager: TokenManager
     @Inject
     lateinit var soundManager: UiSoundManager
 
@@ -36,6 +39,7 @@ class FeedFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val adapter = FeedAdapter(
+            currentUsername = tokenManager.getUsername(),
             onProjectClick = { project ->
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.main_container, ProjectDetailsFragment.newInstance(project))
@@ -64,8 +68,17 @@ class FeedFragment : Fragment() {
                     .replace(R.id.main_container, profileFragment)
                     .addToBackStack(null)
                     .commit()
+            },
+            onDeleteClick = { itemToDelete ->
+                androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Delete post")
+                    .setMessage("Are you sure you want to delete this? This action cannot be undone.")
+                    .setPositiveButton("Delete") { _, _ ->
+                        viewModel.deleteItem(itemToDelete)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
-
         )
 
         view.findViewById<RecyclerView>(R.id.rvFeed).adapter = adapter

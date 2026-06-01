@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 import crud
@@ -31,6 +31,11 @@ def create_post(
     )
     post = crud.get_post(db, post.id)
     return post
+
+@router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post_endpoint(post_id: int, user_id: CurrentUserId, db: DbDep):
+    crud.delete_post(db=db, post_id=post_id, current_user_id=user_id)
+    return None
 
 
 @router.get("/{post_id}", response_model=PostReadDTO)

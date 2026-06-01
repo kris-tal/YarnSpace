@@ -3,19 +3,26 @@ package com.yarnspace.app.core.auth
 import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object TokenManager {
+@Singleton
+class TokenManager @Inject constructor(
+	@ApplicationContext private val context: Context
+) {
 
-	private const val PREF_NAME = "auth_prefs"
-	private const val TOKEN_KEY = "auth_token"
+	private val PREF_NAME = "auth_prefs"
+	private val TOKEN_KEY = "auth_token"
+	private val USERNAME_KEY = "auth_username"
 
-	private fun getEncryptedSharedPreferences(context: Context): EncryptedSharedPreferences {
+	private val prefs: EncryptedSharedPreferences by lazy {
 		val masterKey = MasterKey.Builder(context)
 			.setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
 			.build()
 
 		@Suppress("DEPRECATION")
-		return EncryptedSharedPreferences.create(
+		EncryptedSharedPreferences.create(
 			context,
 			PREF_NAME,
 			masterKey,
@@ -24,20 +31,23 @@ object TokenManager {
 		) as EncryptedSharedPreferences
 	}
 
-	fun saveToken(context: Context, token: String) {
-		val prefs = getEncryptedSharedPreferences(context)
+	fun saveToken(token: String) {
 		prefs.edit().putString(TOKEN_KEY, token).apply()
 	}
 
-	fun getToken(context: Context): String? {
-		val prefs = getEncryptedSharedPreferences(context)
+	fun getToken(): String? {
 		return prefs.getString(TOKEN_KEY, null)
 	}
 
-	fun clearToken(context: Context) {
-		val prefs = getEncryptedSharedPreferences(context)
-		prefs.edit().remove(TOKEN_KEY).apply()
+	fun saveUsername(username: String) {
+		prefs.edit().putString(USERNAME_KEY, username).apply()
+	}
+
+	fun getUsername(): String? {
+		return prefs.getString(USERNAME_KEY, null)
+	}
+
+	fun clearToken() {
+		prefs.edit().remove(TOKEN_KEY).remove(USERNAME_KEY).apply()
 	}
 }
-
-

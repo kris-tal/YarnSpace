@@ -20,16 +20,23 @@ import com.google.android.material.chip.ChipGroup
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.search.SearchView
 import com.yarnspace.app.R
+import com.yarnspace.app.core.auth.TokenManager // <-- DODANY IMPORT
 import com.yarnspace.app.feature.feed.presentation.FeedAdapter
+import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
 import com.yarnspace.app.feature.profile.presentation.ProfileFragment
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SearchFragment : Fragment() {
 
     private val viewModel: SearchViewModel by viewModels()
+    private val feedViewModel: FeedViewModel by viewModels()
+
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     private lateinit var userAdapter: UserSearchAdapter
     private lateinit var projectAdapter: FeedAdapter
@@ -68,6 +75,7 @@ class SearchFragment : Fragment() {
         }
 
         projectAdapter = FeedAdapter(
+            currentUsername = tokenManager.getUsername(), // <-- PRZEKAZANA NAZWA USERA
             onProjectClick = { project ->
                 searchView.hide()
                 parentFragmentManager.beginTransaction()
@@ -87,6 +95,16 @@ class SearchFragment : Fragment() {
                     .replace(R.id.main_container, profileFragment)
                     .addToBackStack(null)
                     .commit()
+            },
+            onDeleteClick = { itemToDelete -> // <-- DODANE USUWANIE
+                androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Delete post")
+                    .setMessage("Are you sure you want to delete this? This action cannot be undone.")
+                    .setPositiveButton("Delete") { _, _ ->
+                        feedViewModel.deleteItem(itemToDelete)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
         )
 

@@ -171,6 +171,22 @@ def create_post(db: Session, *, author_id: int, content: Optional[str], image_ur
     return post
 
 
+def delete_post(db: Session, *, post_id: int, current_user_id: int) -> None:
+    # 1. Pobieramy post (get_post rzuci błędem 404 jeśli nie istnieje)
+    post = get_post(db, post_id)
+
+    # 2. Tarcza bezpieczeństwa: sprawdzamy autora
+    if post.author_id != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete your own posts"
+        )
+
+    # 3. Usuwamy z bazy
+    db.delete(post)
+    db.commit()
+
+
 def list_posts_by_user(db: Session, *, user_id: Optional[int], limit: int = 20, offset: int = 0) -> List[models.Post]:
     stmt = (
         select(models.Post)
@@ -211,6 +227,22 @@ def create_project(db: Session, *, author_id: int, data: dict) -> models.Project
     db.refresh(project)
     db.refresh(project, attribute_names=["author"])
     return project
+
+
+def delete_project(db: Session, *, project_id: int, current_user_id: int) -> None:
+    # 1. Pobieramy projekt
+    project = get_project(db, project_id)
+
+    # 2. Tarcza bezpieczeństwa: sprawdzamy autora
+    if project.author_id != current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You can only delete your own projects"
+        )
+
+    # 3. Usuwamy z bazy
+    db.delete(project)
+    db.commit()
 
 
 def list_projects_by_user(db: Session, *, user_id: Optional[int], limit: int = 20, offset: int = 0) -> List[models.Project]:

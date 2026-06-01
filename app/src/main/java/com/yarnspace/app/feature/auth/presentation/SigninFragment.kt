@@ -7,27 +7,21 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.yarnspace.app.MainActivity
 import com.yarnspace.app.R
-import com.yarnspace.app.data.RegisterRequest
-import com.yarnspace.app.core.auth.TokenManager
-import com.yarnspace.app.core.network.ApiService
-import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class SigninFragment : Fragment(R.layout.fragment_signin) {
 
-    @Inject
-    lateinit var apiService: ApiService
-
-    @Inject
-    lateinit var themeSettingsRepository: ThemeSettingsRepository
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -52,44 +46,32 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
                 !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                     Snackbar.make(view, getString(R.string.error_invalid_email), Snackbar.LENGTH_SHORT).show()
                 }
-                password.length < 6 -> {    //backend expects min 6 as per schemas.py
+                password.length < 6 -> {
                     Snackbar.make(view, getString(R.string.error_password_length), Snackbar.LENGTH_SHORT).show()
                 }
                 password != confirm -> {
                     Snackbar.make(view, getString(R.string.error_passwords_not_match), Snackbar.LENGTH_SHORT).show()
                 }
-                else -> {
-                    registerUser(view, username, email, password)
+                else -> { viewModel.register(username, email, password) }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is AuthUiEvent.LoginSuccess -> {
+                            startActivity(Intent(requireContext(), MainActivity::class.java))
+                            requireActivity().finish()
+                        }
+                        is AuthUiEvent.Error -> { Snackbar.make(view, event.message, Snackbar.LENGTH_LONG).show() }
+                    }
                 }
             }
         }
 
         goToLogin.setOnClickListener {
             parentFragmentManager.popBackStack()
-        }
-    }
-
-    private fun registerUser(view: View, username: String, email: String, pass: String) {
-        lifecycleScope.launch {
-            try {
-                val request = RegisterRequest(
-                    username = username,
-                    email = email,
-                    displayName = username,
-                    password = pass
-                )
-                val response = apiService.register(request)
-
-                TokenManager.saveToken(requireContext(), response.accessToken)
-
-                themeSettingsRepository.setAccentColorName(response.user.accentColor)
-
-                startActivity(Intent(requireContext(), MainActivity::class.java))
-                requireActivity().finish()
-            } catch (e: Exception) {
-                val message = "Registration failed: ${e.localizedMessage ?: "Unknown error"}"
-                Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
-            }
         }
     }
 }

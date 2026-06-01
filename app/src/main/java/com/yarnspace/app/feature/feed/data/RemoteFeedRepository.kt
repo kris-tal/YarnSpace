@@ -37,6 +37,24 @@ class RemoteFeedRepository @Inject constructor(
         }
     }
 
+    override suspend fun deletePost(postId: Long): Result<Unit> {
+        return try {
+            apiService.deletePost(postId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun deleteProject(projectId: Long): Result<Unit> {
+        return try {
+            apiService.deleteProject(projectId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun reblogProject(projectId: Long): Result<FeedItem.Post> {
         return try {
             val response = apiService.createPost(PostCreateDto(rebloggedProjectId = projectId))

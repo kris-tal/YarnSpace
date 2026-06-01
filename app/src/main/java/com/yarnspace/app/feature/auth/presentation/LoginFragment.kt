@@ -6,28 +6,20 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.yarnspace.app.MainActivity
 import com.yarnspace.app.R
-import com.yarnspace.app.core.auth.TokenManager
-import com.yarnspace.app.core.network.ApiService
-import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.lang.Exception
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class LoginFragment : Fragment(R.layout.fragment_login) {
-
-    @Inject
-    lateinit var apiService: ApiService
-
-    @Inject
-    lateinit var themeSettingsRepository: ThemeSettingsRepository
+    private val viewModel: AuthViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -41,28 +33,19 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             val identifier = identifierInput.trimmedText()
             val password = passwordInput.rawText()
 
-            when {
-                identifier.isBlank() || password.isBlank() ->
-                    Snackbar.make(view, getString(R.string.error_fill_all_fields), Snackbar.LENGTH_SHORT).show()
-                else -> {
-                    lifecycleScope.launch {
-                        try {
-                            val authResponse = apiService.login(identifier, password)
-                            TokenManager.saveToken(requireContext(), authResponse.accessToken)
+            viewModel.login(identifier, password)
+        }
 
-                            themeSettingsRepository.setAccentColorName(authResponse.user.accentColor)
-
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.events.collect { event ->
+                    when (event) {
+                        is AuthUiEvent.LoginSuccess -> {
                             startActivity(Intent(requireContext(), MainActivity::class.java))
                             requireActivity().finish()
-                        } catch (e: Exception) {
-                            val message = when (e) {
-                                is HttpException -> {
-                                    if (e.code() == 401) "Invalid credentials"
-                                    else "Login failed: ${e.message()}"
-                                }
-                                else -> "Login failed: ${e.message}"
-                            }
-                            Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
+                        }
+                        is AuthUiEvent.Error -> {
+                            Snackbar.make(view, event.message, Snackbar.LENGTH_SHORT).show()
                         }
                     }
                 }

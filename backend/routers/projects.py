@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 import crud
@@ -49,6 +49,12 @@ def create_project(
     project = crud.create_project(db, author_id=user_id, data=data)
     project = crud.get_project(db, project.id)
     return _attach_extra_fields(db, project, user_id)
+
+
+@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_project_endpoint(project_id: int, user_id: CurrentUserId, db: DbDep):
+    crud.delete_project(db=db, project_id=project_id, current_user_id=user_id)
+    return None
 
 
 @router.get("/search", response_model=List[ProjectReadDTO])

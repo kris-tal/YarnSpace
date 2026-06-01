@@ -357,4 +357,12 @@ class ProfileViewModel @Inject constructor(
             )
         }
     }
+
+    fun removeFeedItemFromCache(itemToRemove: FeedItem) {
+        val currentUiState = _uiState.value
+        val newTabItems = currentUiState.tabItems.mapValues { (_, items) ->
+            items.filterNot { it == itemToRemove }
+        }
+        _uiState.value = currentUiState.copy(tabItems = newTabItems)
+    }
 }

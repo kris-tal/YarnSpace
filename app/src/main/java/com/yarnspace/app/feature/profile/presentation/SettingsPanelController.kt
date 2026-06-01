@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import com.yarnspace.app.core.auth.TokenManager
-import com.yarnspace.app.core.auth.SessionRepository
 import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.settings.ThemeSettingsRepository
 import kotlinx.coroutines.launch
@@ -17,7 +16,7 @@ class SettingsPanelController(
     private val context: Context,
     private val refs: SettingsPanelRefs,
     private val themeSettingsRepository: ThemeSettingsRepository,
-    private val sessionRepository: SessionRepository,
+    private val tokenManager: TokenManager,
     private val apiService: ApiService,
     private val resources: Resources,
     private val onLogout: () -> Unit,
@@ -62,14 +61,12 @@ class SettingsPanelController(
                 } catch (e: Exception) {
                     e.printStackTrace()
                 } finally {
-                    TokenManager.clearToken(context)
-                    sessionRepository.clearSession()
+                    tokenManager.clearToken()
                     themeSettingsRepository.clearAccentColor()
                     onLogout()
                 }
             } ?: run {
-                TokenManager.clearToken(context)
-                sessionRepository.clearSession()
+                tokenManager.clearToken()
                 themeSettingsRepository.clearAccentColor()
                 onLogout()
             }
@@ -108,6 +105,6 @@ class SettingsPanelController(
 
     private fun isSystemCurrentlyDark(): Boolean {
         return (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-            Configuration.UI_MODE_NIGHT_YES
+                Configuration.UI_MODE_NIGHT_YES
     }
 }

@@ -25,10 +25,12 @@ import com.yarnspace.app.theme.AccentColor
 import com.yarnspace.app.theme.AvatarIcon
 
 class FeedAdapter(
+    private val currentUsername: String?,
     private val onProjectClick: (FeedItem.Project) -> Unit,
     private val onReblogClick: (FeedItem.Project) -> Unit,
     private val onSaveClick: (FeedItem.Project) -> Unit,
-    private val onAuthorClick: (UserSummary) -> Unit
+    private val onAuthorClick: (UserSummary) -> Unit,
+    private val onDeleteClick: (FeedItem) -> Unit
 ) : ListAdapter<FeedItem, FeedAdapter.VH>(Diff) {
 
     object Diff : DiffUtil.ItemCallback<FeedItem>() {
@@ -44,7 +46,7 @@ class FeedAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_feed_card, parent, false)
-        return VH(view, onProjectClick, onReblogClick, onSaveClick, onAuthorClick) // <-- Przekazujemy onAuthorClick do ViewHoldera!
+        return VH(view, currentUsername, onProjectClick, onReblogClick, onSaveClick, onAuthorClick, onDeleteClick)
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
@@ -53,10 +55,12 @@ class FeedAdapter(
 
     class VH(
         itemView: View,
+        private val currentUsername: String?,
         private val onProjectClick: (FeedItem.Project) -> Unit,
         private val onReblogClick: (FeedItem.Project) -> Unit,
         private val onSaveClick: (FeedItem.Project) -> Unit,
-        private val onAuthorClick: (UserSummary) -> Unit // <-- Dodane do ViewHoldera
+        private val onAuthorClick: (UserSummary) -> Unit,
+        private val onDeleteClick: (FeedItem) -> Unit
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val topBar: View = itemView.findViewById(R.id.llFeedItemTopBar)
@@ -73,6 +77,7 @@ class FeedAdapter(
         private val tvRebloggedNoticeText: TextView = itemView.findViewById(R.id.tvRebloggedNoticeText)
 
         private val llActions: View = itemView.findViewById(R.id.llFeedActions)
+        private val btnDelete: ImageButton = itemView.findViewById(R.id.btnDelete)
         private val btnReblog: ImageButton = itemView.findViewById(R.id.btnReblog)
         private val btnSave: ImageButton = itemView.findViewById(R.id.btnSave)
 
@@ -139,6 +144,23 @@ class FeedAdapter(
                 )
             }
 
+            val authorUsername = when (item) {
+                is FeedItem.Post -> item.author.username
+                is FeedItem.Project -> item.author.username
+                else -> null
+            }
+
+            android.util.Log.d("TEST_KOSZA", "Zalogowany: '$currentUsername' | Autor posta: '$authorUsername'")
+            if (currentUsername != null && authorUsername == currentUsername) {
+                btnDelete.visibility = View.VISIBLE
+                btnDelete.setOnClickListener {
+                    onDeleteClick(item)
+                }
+            } else {
+                btnDelete.visibility = View.GONE
+                btnDelete.setOnClickListener(null)
+            }
+
             when (item) {
                 is FeedItem.Post -> {
                     if (item.rebloggedProject != null) {
@@ -164,6 +186,7 @@ class FeedAdapter(
 
                         llActions.visibility = View.VISIBLE
                         btnReblog.visibility = View.VISIBLE
+                        btnSave.visibility = View.VISIBLE
 
                         setupReblogButton(item.rebloggedProject, activeTint)
                         setupSaveButton(item.rebloggedProject, activeTint)
@@ -174,7 +197,10 @@ class FeedAdapter(
                         llRebloggedNotice.visibility = View.GONE
                         tvTitle.visibility = View.GONE
                         tvContent.text = item.content
-                        llActions.visibility = View.GONE
+
+                        llActions.visibility = if (btnDelete.visibility == View.VISIBLE) View.VISIBLE else View.GONE
+                        btnReblog.visibility = View.GONE
+                        btnSave.visibility = View.GONE
 
                         bindContentImage(
                             view = ivImage,
@@ -200,6 +226,7 @@ class FeedAdapter(
 
                     llActions.visibility = View.VISIBLE
                     btnReblog.visibility = View.VISIBLE
+                    btnSave.visibility = View.VISIBLE
 
                     val projectTheme = AccentColor.fromBackendName(item.author.accentColor)
                     val activeTint = ContextCompat.getColor(context, if (isNightMode) projectTheme.nightColorResId else projectTheme.colorResId)
@@ -232,12 +259,10 @@ class FeedAdapter(
                         crossfade(true)
                     }
                 }
-
                 imageResId != null -> {
                     view.visibility = View.VISIBLE
                     view.setImageResource(imageResId)
                 }
-
                 else -> {
                     view.visibility = View.GONE
                 }

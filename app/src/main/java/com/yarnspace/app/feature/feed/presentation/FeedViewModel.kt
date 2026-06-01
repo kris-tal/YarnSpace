@@ -52,6 +52,31 @@ class FeedViewModel @Inject constructor(
         }
     }
 
+    fun deleteItem(item: FeedItem) {
+        val previousItems = _uiState.value.items
+        _uiState.value = _uiState.value.copy(
+            items = previousItems.filterNot { it == item }
+        )
+
+        viewModelScope.launch {
+            try {
+                when (item) {
+                    is FeedItem.Project -> {
+                        repository.deleteProject(item.id)
+                    }
+                    is FeedItem.Post -> {
+                        repository.deletePost(item.id)
+                    }
+                    else -> {}
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _events.tryEmit(FeedUiEvent.Error(e.message ?: "Failed to delete item"))
+                refreshFeed()
+            }
+        }
+    }
+
     fun reblogProject(project: FeedItem.Project) {
         viewModelScope.launch {
             repository.reblogProject(project.id).onSuccess {
@@ -105,4 +130,3 @@ class FeedViewModel @Inject constructor(
         )
     }
 }
-

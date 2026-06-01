@@ -27,7 +27,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.yarnspace.app.AuthActivity
 import com.yarnspace.app.R
 import com.yarnspace.app.core.audio.UiSoundManager
-import com.yarnspace.app.core.auth.SessionRepository
+import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
@@ -36,8 +36,6 @@ import com.yarnspace.app.feature.feed.presentation.FeedAdapter
 import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
 import com.yarnspace.app.feature.notifs.domain.NotifsRepository
-import com.yarnspace.app.feature.profile.presentation.SettingsPanelController
-import com.yarnspace.app.feature.profile.presentation.SettingsPanelRefs
 import com.yarnspace.app.theme.AccentColor
 import com.yarnspace.app.theme.AccentThemeCoordinator
 import com.yarnspace.app.theme.AvatarIcon
@@ -98,13 +96,13 @@ class ProfileFragment : Fragment() {
     @Inject
     lateinit var accentThemeCoordinator: AccentThemeCoordinator
     @Inject
-    lateinit var sessionRepository: SessionRepository
-    @Inject
     lateinit var apiService: ApiService
     @Inject
     lateinit var notifsRepository: NotifsRepository
     @Inject
     lateinit var soundManager: UiSoundManager
+    @Inject
+    lateinit var tokenManager: TokenManager
 
     private lateinit var adapter: FeedAdapter
     private var profileMode: ProfileViewModel.ProfileMode = ProfileViewModel.ProfileMode.PRIVATE
@@ -159,7 +157,7 @@ class ProfileFragment : Fragment() {
             context = requireContext(),
             refs = settingsRefs,
             themeSettingsRepository = themeSettingsRepository,
-            sessionRepository = sessionRepository,
+            tokenManager = tokenManager,
             apiService = apiService,
             resources = resources,
             onLogout = {
@@ -347,7 +345,10 @@ class ProfileFragment : Fragment() {
             loadAvatarIcon(ivAvatar, a.getString(ARG_PREFILL_AVATAR_ICON))
         }
 
+        val myUsername = tokenManager.getUsername()
+
         adapter = FeedAdapter(
+            currentUsername = myUsername,
             onProjectClick = { project ->
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.main_container, ProjectDetailsFragment.newInstance(project))
@@ -376,6 +377,19 @@ class ProfileFragment : Fragment() {
                     .replace(R.id.main_container, profileFragment)
                     .addToBackStack(null)
                     .commit()
+            },
+            onDeleteClick = { itemToDelete ->
+                androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Delete post")
+                    .setMessage("Are you sure you want to delete this? This action cannot be undone.")
+                    .setPositiveButton("Delete") { _, _ ->
+                        soundManager.play(soundManager.soundDelete)
+                        feedViewModel.deleteItem(itemToDelete)
+
+                        viewModel.removeFeedItemFromCache(itemToDelete)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
             }
         )
         view.findViewById<RecyclerView>(R.id.rvProfile).adapter = adapter

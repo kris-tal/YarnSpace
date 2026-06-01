@@ -20,6 +20,7 @@ class UiSoundManager @Inject constructor(
     val soundSave: Int
     val soundUnsave: Int
     val soundCreate: Int
+    val soundDelete: Int
 
     init {
         soundClick = soundPool.load(context, R.raw.click, 1)
@@ -29,8 +30,8 @@ class UiSoundManager @Inject constructor(
         soundSave = soundPool.load(context, R.raw.save, 1)
         soundUnsave = soundPool.load(context, R.raw.unsave, 1)
         soundCreate = soundPool.load(context, R.raw.create, 1)
+        soundDelete = soundPool.load(context, R.raw.delete, 1)
     }
-
 
     fun play(soundId: Int) {
         if (soundId != 0) {

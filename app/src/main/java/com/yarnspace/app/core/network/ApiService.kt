@@ -95,8 +95,14 @@ interface ApiService {
     @POST("posts/")
     suspend fun createPost(@Body payload: PostCreateDto): PostReadDto
 
+    @DELETE("posts/{id}")
+    suspend fun deletePost(@Path("id") id: Long)
+
     @POST("projects/")
     suspend fun createProject(@Body payload: ProjectCreateDto): ProjectReadDto
+
+    @DELETE("projects/{id}")
+    suspend fun deleteProject(@Path("id") id: Long)
 
     @POST("projects/{id}/save")
     suspend fun saveProject(@Path("id") projectId: Long): Map<String, String>

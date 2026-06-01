@@ -1,6 +1,5 @@
 package com.yarnspace.app.di
 
-import android.content.Context
 import com.google.gson.Gson
 import com.yarnspace.app.BuildConfig
 import com.yarnspace.app.core.auth.TokenManager
@@ -8,7 +7,6 @@ import com.yarnspace.app.core.network.ApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -26,12 +24,13 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(
-        @ApplicationContext context: Context,
+        tokenManager: TokenManager
     ): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val requestBuilder = chain.request().newBuilder()
-                TokenManager.getToken(context)?.let { token ->
+
+                tokenManager.getToken()?.let { token ->
                     requestBuilder.addHeader("Authorization", "Bearer $token")
                 }
                 chain.proceed(requestBuilder.build())
@@ -58,4 +57,3 @@ object NetworkModule {
         return retrofit.create(ApiService::class.java)
     }
 }
-
