@@ -10,6 +10,7 @@ enum class AvatarIcon(val backendName: String, @DrawableRes val resId: Int) {
     CIRCLE_STAR("circle_star", R.drawable.ic_avatar_circle_star),
     DAISY("daisy", R.drawable.ic_avatar_daisy),
     DAISY_ALT("daisy_alt", R.drawable.ic_avatar_daisy_alt),
+    HORSE("horse", R.drawable.ic_avatar_horse),
     PAW("paw", R.drawable.ic_avatar_paw),
     SMILE("smile", R.drawable.ic_avatar_smile),
     STAR("star", R.drawable.ic_avatar_star);
