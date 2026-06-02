@@ -474,6 +474,11 @@ class ProfileFragment : Fragment() {
                                 editController.setControlsEnabled(true)
                                 editController.closePanel(force = true)
 
+                                viewModel.uiState.value.profile?.let { updatedProfile ->
+                                    applyAccentToProfile(updatedProfile.accentColor)
+                                    loadAvatarIcon(ivAvatar, updatedProfile.avatarIcon)
+                                }
+
                                 val pending = pendingAccentToApplyGlobally
                                 pendingAccentToApplyGlobally = null
                                 if (!pending.isNullOrBlank()) {
