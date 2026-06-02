@@ -37,7 +37,7 @@ def upload_image(
     filename = f"{uuid.uuid4().hex}{ext}"
     dest_path = uploads_dir / filename
 
-    # Soft size limit: 10MB (based on Content-Length when available)
+    # soft size limit: 10MB
     content_length = request.headers.get("content-length")
     if content_length is not None:
         try:

@@ -75,7 +75,7 @@ class SearchFragment : Fragment() {
         }
 
         projectAdapter = FeedAdapter(
-            currentUsername = tokenManager.getUsername(), // <-- PRZEKAZANA NAZWA USERA
+            currentUsername = tokenManager.getUsername(),
             onProjectClick = { project ->
                 searchView.hide()
                 parentFragmentManager.beginTransaction()
@@ -96,7 +96,7 @@ class SearchFragment : Fragment() {
                     .addToBackStack(null)
                     .commit()
             },
-            onDeleteClick = { itemToDelete -> // <-- DODANE USUWANIE
+            onDeleteClick = { itemToDelete ->
                 androidx.appcompat.app.AlertDialog.Builder(requireContext())
                     .setTitle("Delete post")
                     .setMessage("Are you sure you want to delete this? This action cannot be undone.")
@@ -162,8 +162,6 @@ class SearchFragment : Fragment() {
                         chipGroupDateFilter.visibility = if (filtersVisible) View.VISIBLE else View.GONE
                         cbHasPattern.visibility = if (filtersVisible) View.VISIBLE else View.GONE
 
-                        // Keep chip selection in sync with state.
-                        // None selected == ANY.
                         ignoreChipCallback = true
                         when (state.dateAddedFilter) {
                             SearchViewModel.DateAddedFilter.ANY -> {

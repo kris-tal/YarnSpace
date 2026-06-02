@@ -21,8 +21,8 @@ import com.yarnspace.app.R
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.core.util.UrlUtils
-import com.yarnspace.app.theme.AccentColor
-import com.yarnspace.app.theme.AvatarIcon
+import com.yarnspace.app.core.theme.AccentColor
+import com.yarnspace.app.core.theme.AvatarIcon
 
 class FeedAdapter(
     private val currentUsername: String?,
@@ -120,8 +120,8 @@ class FeedAdapter(
 
                 tvAuthor.setTextColor(onPrimaryColor)
 
-                val bgColor = ContextCompat.getColor(context, theme.getLighterBg(isNightMode))
-                val iconColor = ContextCompat.getColor(context, theme.getDarkerIcon(isNightMode))
+                val bgColor = ContextCompat.getColor(context, theme.getLighterShade(isNightMode))
+                val iconColor = ContextCompat.getColor(context, theme.getDarkerShade(isNightMode))
 
                 cvAvatarContainer.setCardBackgroundColor(bgColor)
                 ivAvatar.setColorFilter(iconColor)

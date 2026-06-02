@@ -1,7 +1,7 @@
 package com.yarnspace.app
 
 import android.app.Application
-import com.yarnspace.app.theme.ThemeModeCoordinator
+import com.yarnspace.app.core.theme.ThemeModeCoordinator
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 

@@ -18,8 +18,10 @@
     <string name="action_go_to_login">Already have an account? <b>Log in</b></string>
 
     <string name="error_fill_all_fields">Please fill in all fields.</string>
+    <string name="error_username_length">Username must be at least 3 characters.</string>
+    <string name="error_username_is_email">Username cannot contain \'@\'.</string>
     <string name="error_invalid_email">Please enter a valid email.</string>
-    <string name="error_password_length">Password must be at least 6 characters.</string>
+    <string name="error_password_length">Password must be at least 8 characters.</string>
     <string name="error_passwords_not_match">Passwords do not match.</string>
     <string name="error_loading_profile">Error loading profile</string>
 

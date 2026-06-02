@@ -1,4 +1,4 @@
-package com.yarnspace.app.theme
+package com.yarnspace.app.core.theme
 
 import androidx.annotation.ColorRes
 import androidx.annotation.StyleRes
@@ -57,11 +57,11 @@ enum class AccentColor(
         R.style.ThemeOverlay_YarnSpace_Accent_Blue
     );
 
-    fun getLighterBg(isNightMode: Boolean): Int {
+    fun getLighterShade(isNightMode: Boolean): Int {
         return if (isNightMode) nightLighterColorResId else lighterColorResId
     }
 
-    fun getDarkerIcon(isNightMode: Boolean): Int {
+    fun getDarkerShade(isNightMode: Boolean): Int {
         return if (isNightMode) nightDarkerColorResId else darkerColorResId
     }
 

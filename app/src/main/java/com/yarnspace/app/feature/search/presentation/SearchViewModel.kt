@@ -26,17 +26,8 @@ class SearchViewModel @Inject constructor(
     private val feedRepository: FeedRepository,
 ) : ViewModel() {
 
-    enum class SearchMode {
-        USERS,
-        PROJECTS,
-    }
-
-    enum class DateAddedFilter {
-        ANY,
-        LAST_24H,
-        LAST_7D,
-        LAST_30D,
-    }
+    enum class SearchMode { USERS, PROJECTS }
+    enum class DateAddedFilter { ANY, LAST_24H, LAST_7D, LAST_30D }
 
     data class SearchUiState(
         val query: String = "",
@@ -202,4 +193,3 @@ class SearchViewModel @Inject constructor(
         )
     }
 }
-

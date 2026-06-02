@@ -13,8 +13,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.yarnspace.app.R
 import com.yarnspace.app.core.model.UserSummary
-import com.yarnspace.app.theme.AccentColor
-import com.yarnspace.app.theme.AvatarIcon
+import com.yarnspace.app.core.theme.AccentColor
+import com.yarnspace.app.core.theme.AvatarIcon
 
 class UserSearchAdapter(private val onUserClick: (UserSummary) -> Unit) :
     ListAdapter<UserSummary, UserSearchAdapter.VH>(Diff) {
@@ -44,7 +44,6 @@ class UserSearchAdapter(private val onUserClick: (UserSummary) -> Unit) :
 
         private val cvAvatarContainer: MaterialCardView? = itemView.findViewById(R.id.cvUserAvatarContainer)
         private val ivAvatar: ImageView = itemView.findViewById(R.id.ivUserAvatar)
-
         private val tvDisplayName: TextView = itemView.findViewById(R.id.tvDisplayName)
         private val tvUsername: TextView = itemView.findViewById(R.id.tvUsername)
 
@@ -56,8 +55,8 @@ class UserSearchAdapter(private val onUserClick: (UserSummary) -> Unit) :
             val isNightMode = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
             val userTheme = AccentColor.fromBackendName(user.accentColor)
-            val bgColor = ContextCompat.getColor(context, userTheme.getLighterBg(isNightMode))
-            val iconColor = ContextCompat.getColor(context, userTheme.getDarkerIcon(isNightMode))
+            val bgColor = ContextCompat.getColor(context, userTheme.getLighterShade(isNightMode))
+            val iconColor = ContextCompat.getColor(context, userTheme.getDarkerShade(isNightMode))
 
             cvAvatarContainer?.setCardBackgroundColor(bgColor)
             ivAvatar.setColorFilter(iconColor)

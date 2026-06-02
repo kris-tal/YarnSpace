@@ -1,9 +1,9 @@
-package com.yarnspace.app.theme
+package com.yarnspace.app.core.theme
 
 import android.content.Context
 import androidx.annotation.StyleRes
 import androidx.appcompat.app.AppCompatActivity
-import com.yarnspace.app.data.settings.ThemeSettingsRepository
+import com.yarnspace.app.core.theme.settings.ThemeSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,11 +22,9 @@ class AccentThemeCoordinator @Inject constructor(
     }
 
     private fun applyOverlay(activity: AppCompatActivity, @StyleRes overlayResId: Int) {
-        // Apply on top of whatever theme was selected by manifest/theme mode.
         activity.theme.applyStyle(overlayResId, true)
     }
 
-    /** Utility for non-Activity contexts (rare). */
     fun resolveOverlayResId(context: Context, accentBackendName: String?): Int {
         return AccentColor.fromBackendName(accentBackendName).themeOverlayResId
     }

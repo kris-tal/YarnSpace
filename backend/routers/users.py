@@ -80,8 +80,6 @@ def update_me(
 ):
     user = crud.get_user_by_id(db, user_id)
 
-    # Tutaj naprawione: odwołujemy się do camelCase z Pydantica (payload),
-    # a przypisujemy do snake_case z SQLAlchemy (user)
     if payload.displayName is not None:
         user.display_name = payload.displayName
 

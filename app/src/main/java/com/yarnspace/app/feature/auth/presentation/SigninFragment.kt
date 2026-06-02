@@ -43,10 +43,16 @@ class SigninFragment : Fragment(R.layout.fragment_signin) {
                 username.isEmpty() || email.isEmpty() || password.isEmpty() || confirm.isEmpty() -> {
                     Snackbar.make(view, getString(R.string.error_fill_all_fields), Snackbar.LENGTH_SHORT).show()
                 }
+                username.length < 3 -> {
+                    Snackbar.make(view, getString(R.string.error_username_length), Snackbar.LENGTH_SHORT).show()
+                }
+                username.contains('@') -> {
+                    Snackbar.make(view, getString(R.string.error_username_is_email), Snackbar.LENGTH_SHORT).show()
+                }
                 !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                     Snackbar.make(view, getString(R.string.error_invalid_email), Snackbar.LENGTH_SHORT).show()
                 }
-                password.length < 6 -> {
+                password.length < 8 -> {
                     Snackbar.make(view, getString(R.string.error_password_length), Snackbar.LENGTH_SHORT).show()
                 }
                 password != confirm -> {

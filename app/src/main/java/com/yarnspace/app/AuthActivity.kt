@@ -3,8 +3,8 @@ package com.yarnspace.app
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.yarnspace.app.feature.auth.presentation.LoginFragment
-import com.yarnspace.app.theme.AccentThemeCoordinator
-import com.yarnspace.app.theme.ThemeModeCoordinator
+import com.yarnspace.app.core.theme.AccentThemeCoordinator
+import com.yarnspace.app.core.theme.ThemeModeCoordinator
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

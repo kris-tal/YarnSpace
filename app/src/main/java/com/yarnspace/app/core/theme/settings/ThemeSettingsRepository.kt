@@ -1,4 +1,4 @@
-package com.yarnspace.app.data.settings
+package com.yarnspace.app.core.theme.settings
 
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -40,7 +40,6 @@ class ThemeSettingsRepository @Inject constructor(
         private const val PREFS_NAME = "app_settings"
         private const val KEY_USE_CUSTOM_THEME = "use_custom_theme"
         private const val KEY_FORCE_NIGHT_MODE = "force_night_mode"
-
         private const val KEY_ACCENT_COLOR_NAME = "accent_color_name"
     }
 }

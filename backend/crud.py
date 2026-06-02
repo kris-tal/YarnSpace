@@ -198,13 +198,13 @@ def list_posts_by_user(db: Session, *, user_id: Optional[int], limit: int = 20, 
     stmt = stmt.order_by(models.Post.created_at.desc()).limit(limit).offset(offset)
     return list(db.execute(stmt).scalars().all())
 
-
 def get_post(db: Session, post_id: int) -> models.Post:
     stmt = select(models.Post).options(joinedload(models.Post.author), joinedload(models.Post.reblogged_project).joinedload(models.Project.author)).where(models.Post.id == post_id)
     post = db.execute(stmt).scalar_one_or_none()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post
+
 
 def get_followed_posts(db: Session, viewer_id: int, limit: int = 50):
     followed_subquery = db.query(models.Follow.followee_id).filter(models.Follow.follower_id == viewer_id)
@@ -230,17 +230,14 @@ def create_project(db: Session, *, author_id: int, data: dict) -> models.Project
 
 
 def delete_project(db: Session, *, project_id: int, current_user_id: int) -> None:
-    # 1. Pobieramy projekt
     project = get_project(db, project_id)
 
-    # 2. Tarcza bezpieczeństwa: sprawdzamy autora
     if project.author_id != current_user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You can only delete your own projects"
         )
 
-    # 3. Usuwamy z bazy
     db.delete(project)
     db.commit()
 

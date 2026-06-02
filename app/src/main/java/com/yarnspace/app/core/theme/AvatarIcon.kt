@@ -1,4 +1,4 @@
-package com.yarnspace.app.theme
+package com.yarnspace.app.core.theme
 
 import androidx.annotation.DrawableRes
 import com.yarnspace.app.R

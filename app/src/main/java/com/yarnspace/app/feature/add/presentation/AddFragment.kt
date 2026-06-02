@@ -126,10 +126,6 @@ class AddFragment : Fragment(R.layout.fragment_add) {
         fun trimmed(editText: TextInputEditText): String = raw(editText).trim()
         fun blankToNull(value: String): String? = value.trim().ifBlank { null }
 
-        fun dpToPx(dp: Int): Int {
-            return (dp * resources.displayMetrics.density).toInt()
-        }
-
         fun styleTabButton(button: MaterialButton, selected: Boolean) {
             val primary = MaterialColors.getColor(button, com.google.android.material.R.attr.colorPrimary)
             val onPrimary = MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnPrimary)

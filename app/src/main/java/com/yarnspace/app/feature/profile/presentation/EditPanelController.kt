@@ -3,6 +3,7 @@ package com.yarnspace.app.feature.profile.presentation
 import android.content.Context
 import android.content.res.ColorStateList
 import android.content.res.Configuration
+import android.view.Gravity
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
@@ -19,8 +20,8 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.snackbar.Snackbar
 import com.yarnspace.app.R
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
-import com.yarnspace.app.theme.AccentColor
-import com.yarnspace.app.theme.AvatarIcon
+import com.yarnspace.app.core.theme.AccentColor
+import com.yarnspace.app.core.theme.AvatarIcon
 
 class EditPanelController(
     private val context: Context,
@@ -173,8 +174,8 @@ class EditPanelController(
             btn.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(context, if(isNight) btnTheme.nightColorResId else btnTheme.colorResId))
         }
 
-        val bgTint = ContextCompat.getColor(context, theme.getLighterBg(isNight))
-        val iconTint = ContextCompat.getColor(context, theme.getDarkerIcon(isNight))
+        val bgTint = ContextCompat.getColor(context, theme.getLighterShade(isNight))
+        val iconTint = ContextCompat.getColor(context, theme.getDarkerShade(isNight))
 
         for (i in 0 until llAvatarPickerContainer.childCount) {
             val card = llAvatarPickerContainer.getChildAt(i) as? MaterialCardView
@@ -216,7 +217,7 @@ class EditPanelController(
                     (32 * context.resources.displayMetrics.density).toInt(),
                     (32 * context.resources.displayMetrics.density).toInt()
                 ).apply {
-                    gravity = android.view.Gravity.CENTER
+                    gravity = Gravity.CENTER
                 }
                 setImageResource(iconEnum.resId)
             }

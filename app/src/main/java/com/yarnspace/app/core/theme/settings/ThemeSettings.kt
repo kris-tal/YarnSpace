@@ -1,4 +1,4 @@
-package com.yarnspace.app.data.settings
+package com.yarnspace.app.core.theme.settings
 
 data class ThemeSettings(
     val useCustomTheme: Boolean,

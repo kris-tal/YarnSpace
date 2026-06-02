@@ -5,12 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.RegisterRequest
-import com.yarnspace.app.data.settings.ThemeSettingsRepository // <-- DODANY IMPORT
+import com.yarnspace.app.core.theme.settings.ThemeSettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 sealed interface AuthUiEvent {
@@ -22,7 +23,7 @@ sealed interface AuthUiEvent {
 class AuthViewModel @Inject constructor(
     private val apiService: ApiService,
     private val tokenManager: TokenManager,
-    private val themeSettingsRepository: ThemeSettingsRepository // <-- WSTRZYKNIĘTE REPOZYTORIUM
+    private val themeSettingsRepository: ThemeSettingsRepository
 ) : ViewModel() {
 
     private val _events = MutableSharedFlow<AuthUiEvent>(extraBufferCapacity = 1)
@@ -36,15 +37,13 @@ class AuthViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // 1. Serwer zwraca nam pełny AuthResponse
                 val response = apiService.login(identifier, pass)
 
-                // 2. ViewModel sam zapisuje wszystkie dane z obiektu user!
+
                 tokenManager.saveToken(response.accessToken)
                 tokenManager.saveUsername(response.user.username)
-                themeSettingsRepository.setAccentColorName(response.user.accentColor) // <-- ZAPIS KOLORU
+                themeSettingsRepository.setAccentColorName(response.user.accentColor)
 
-                // 3. Wysyłamy sygnał do Fragmentu: "Zrobione, możesz zmieniać ekran"
                 _events.tryEmit(AuthUiEvent.LoginSuccess)
 
             } catch (e: Exception) {
@@ -70,6 +69,13 @@ class AuthViewModel @Inject constructor(
                 themeSettingsRepository.setAccentColorName(response.user.accentColor)
 
                 _events.tryEmit(AuthUiEvent.LoginSuccess)
+            } catch (e: HttpException) {
+                e.printStackTrace()
+                if (e.code() == 409) {
+                    _events.tryEmit(AuthUiEvent.Error("Username taken."))
+                } else {
+                    _events.tryEmit(AuthUiEvent.Error("Server error: ${e.code()}"))
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 _events.tryEmit(AuthUiEvent.Error(e.message ?: "Registration failed."))

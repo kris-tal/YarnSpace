@@ -22,8 +22,8 @@ data class NotifActorDto(
     val username: String,
     @SerializedName("displayName")
     val displayName: String,
-    @SerializedName("avatarUrl")
-    val avatarUrl: String?,
+    @SerializedName("avatarIcon")
+    val avatarIcon: String?,
     @SerializedName("accentColor")
     val accentColor: String,
 )

@@ -19,8 +19,8 @@ import com.yarnspace.app.R
 import com.yarnspace.app.core.model.FeedItem
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.core.util.UrlUtils
-import com.yarnspace.app.theme.AccentColor
-import com.yarnspace.app.theme.AvatarIcon
+import com.yarnspace.app.core.theme.AccentColor
+import com.yarnspace.app.core.theme.AvatarIcon
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -31,7 +31,7 @@ class ProjectDetailsFragment : Fragment() {
         private const val ARG_PROJECT_TITLE = "arg_project_title"
         private const val ARG_PROJECT_AUTHOR_NAME = "arg_project_author_name"
         private const val ARG_PROJECT_AUTHOR_USERNAME = "arg_project_author_username"
-        private const val ARG_PROJECT_AUTHOR_AVATAR_ICON = "arg_project_author_avatar_icon" // ZMIENIONE Z URL NA ICON
+        private const val ARG_PROJECT_AUTHOR_AVATAR_ICON = "arg_project_author_avatar_icon"
         private const val ARG_PROJECT_AUTHOR_ACCENT_COLOR = "arg_project_author_accent_color"
         private const val ARG_PROJECT_CONTENT = "arg_project_content"
         private const val ARG_PROJECT_IMAGE_RES_ID = "arg_project_image_res_id"
@@ -52,7 +52,7 @@ class ProjectDetailsFragment : Fragment() {
                     putString(ARG_PROJECT_TITLE, project.title)
                     putString(ARG_PROJECT_AUTHOR_NAME, project.author.displayName)
                     putString(ARG_PROJECT_AUTHOR_USERNAME, project.author.username)
-                    putString(ARG_PROJECT_AUTHOR_AVATAR_ICON, project.author.avatarIcon) // ZMIENIONE
+                    putString(ARG_PROJECT_AUTHOR_AVATAR_ICON, project.author.avatarIcon)
                     putString(ARG_PROJECT_AUTHOR_ACCENT_COLOR, project.author.accentColor)
                     putString(ARG_PROJECT_CONTENT, project.content ?: "")
 
@@ -89,8 +89,8 @@ class ProjectDetailsFragment : Fragment() {
                 id = -1,
                 username = args.getString(ARG_PROJECT_AUTHOR_USERNAME).orEmpty(),
                 displayName = args.getString(ARG_PROJECT_AUTHOR_NAME).orEmpty(),
-                avatarIcon = args.getString(ARG_PROJECT_AUTHOR_AVATAR_ICON), // ZMIENIONE
-                accentColor = args.getString(ARG_PROJECT_AUTHOR_ACCENT_COLOR).orEmpty(), // Upewniamy się, że nie ma nulla
+                avatarIcon = args.getString(ARG_PROJECT_AUTHOR_AVATAR_ICON),
+                accentColor = args.getString(ARG_PROJECT_AUTHOR_ACCENT_COLOR).orEmpty(),
             ),
             createdAt = 0,
             title = args.getString(ARG_PROJECT_TITLE).orEmpty(),
@@ -113,9 +113,6 @@ class ProjectDetailsFragment : Fragment() {
     override fun onStart() {
         super.onStart()
 
-        // `MainActivity` ma globalny (nakładany) przycisk ustawień w prawym górnym rogu.
-        // W widoku szczegółów mamy własny pasek akcji z ikonami reblog/save,
-        // więc ukrywamy overlay, aby nie nachodził na te przyciski.
         activity?.findViewById<View>(R.id.settingsPanel)?.visibility = View.GONE
         activity?.findViewById<View>(R.id.btnProfileSettings)?.visibility = View.GONE
     }
@@ -145,15 +142,14 @@ class ProjectDetailsFragment : Fragment() {
         val cvAvatarContainer = view.findViewById<MaterialCardView>(R.id.cvProjectDetailsAvatarContainer)
         val ivAvatar = view.findViewById<ImageView>(R.id.ivProjectDetailsAvatar)
 
-        val bgColor = ContextCompat.getColor(context, authorTheme.getLighterBg(isNightMode))
-        val iconColor = ContextCompat.getColor(context, authorTheme.getDarkerIcon(isNightMode))
+        val bgColor = ContextCompat.getColor(context, authorTheme.getLighterShade(isNightMode))
+        val iconColor = ContextCompat.getColor(context, authorTheme.getDarkerShade(isNightMode))
 
         cvAvatarContainer?.setCardBackgroundColor(bgColor)
         ivAvatar.setColorFilter(iconColor)
 
         val iconEnum = AvatarIcon.fromBackendName(project.author.avatarIcon)
         ivAvatar.setImageResource(iconEnum.resId)
-
 
         val imageContainer = view.findViewById<MaterialCardView>(R.id.cvProjectDetailsImageContainer)
         val imageView = view.findViewById<ImageView>(R.id.ivProjectDetailsImage)
@@ -212,7 +208,6 @@ class ProjectDetailsFragment : Fragment() {
 
         val tintColor = MaterialColors.getColor(btnSave, com.google.android.material.R.attr.colorOnPrimary)
         btnSave.imageTintList = ColorStateList.valueOf(tintColor)
-        btnSave.imageAlpha = if (isSaved) 255 else 170
     }
 
     private fun updateReblogButton(btnReblog: ImageButton) {
@@ -221,7 +216,6 @@ class ProjectDetailsFragment : Fragment() {
 
         val tintColor = MaterialColors.getColor(btnReblog, com.google.android.material.R.attr.colorOnPrimary)
         btnReblog.imageTintList = ColorStateList.valueOf(tintColor)
-        btnReblog.imageAlpha = if (isReblogged) 255 else 170
     }
 
     override fun onStop() {

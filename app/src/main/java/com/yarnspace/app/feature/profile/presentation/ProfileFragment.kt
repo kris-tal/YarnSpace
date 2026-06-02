@@ -31,14 +31,14 @@ import com.yarnspace.app.core.auth.TokenManager
 import com.yarnspace.app.core.model.UserSummary
 import com.yarnspace.app.core.network.ApiService
 import com.yarnspace.app.data.remote.dto.ProfilePublicDto
-import com.yarnspace.app.data.settings.ThemeSettingsRepository
+import com.yarnspace.app.core.theme.settings.ThemeSettingsRepository
 import com.yarnspace.app.feature.feed.presentation.FeedAdapter
 import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
 import com.yarnspace.app.feature.notifs.domain.NotifsRepository
-import com.yarnspace.app.theme.AccentColor
-import com.yarnspace.app.theme.AccentThemeCoordinator
-import com.yarnspace.app.theme.AvatarIcon
+import com.yarnspace.app.core.theme.AccentColor
+import com.yarnspace.app.core.theme.AccentThemeCoordinator
+import com.yarnspace.app.core.theme.AvatarIcon
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -192,8 +192,8 @@ class ProfileFragment : Fragment() {
             currentProfileColor = primaryColor
             accentBlock.backgroundTintList = ColorStateList.valueOf(primaryColor)
 
-            val bgColor = ContextCompat.getColor(ctx, theme.getLighterBg(isNight))
-            val iconColor = ContextCompat.getColor(ctx, theme.getDarkerIcon(isNight))
+            val bgColor = ContextCompat.getColor(ctx, theme.getLighterShade(isNight))
+            val iconColor = ContextCompat.getColor(ctx, theme.getDarkerShade(isNight))
 
             cvAvatarContainer?.setCardBackgroundColor(bgColor)
             ivAvatar?.setColorFilter(iconColor)

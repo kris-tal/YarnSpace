@@ -41,5 +41,3 @@ sealed interface FeedItem {
 		val isRebloggedByMe: Boolean = false,
 	) : Base
 }
-
-

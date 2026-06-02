@@ -23,10 +23,10 @@ def register(payload: UserRegisterDTO, db: DbDep):
         db,
         username=payload.username,
         email=payload.email,
-        display_name=payload.display_name,
+        display_name=payload.displayName,
         accent_color=payload.accentColor,
         password_hash=hash_password(payload.password),
-        avatar_url=payload.avatarUrl,
+        avatar_icon=payload.avatarIcon,
     )
     token = create_access_token(user_id=user.id)
 
@@ -55,13 +55,6 @@ def login(form: Annotated[OAuth2PasswordRequestForm, Depends()], db: DbDep):
 
 @router.post("/logout")
 def logout(user_id: Annotated[int | None, Depends(get_optional_current_user_id)]):
-    """Logout endpoint.
-
-    We use stateless JWTs, so there's nothing to invalidate server-side.
-    The client should delete its stored token.
-
-    If a token is provided, we parse it (via dependency) to keep behavior consistent.
-    """
-
+    # frontend has to deal with deleting the token
     return {"status": "ok"}
 

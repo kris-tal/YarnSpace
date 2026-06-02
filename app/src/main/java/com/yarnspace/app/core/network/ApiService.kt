@@ -113,4 +113,3 @@ interface ApiService {
     @GET("feed/")
     suspend fun getGlobalFeed(@Query("limit") limit: Int = 50): List<com.google.gson.JsonElement>
 }
-

@@ -1,7 +1,7 @@
-package com.yarnspace.app.theme
+package com.yarnspace.app.core.theme
 
 import androidx.appcompat.app.AppCompatDelegate
-import com.yarnspace.app.data.settings.ThemeSettingsRepository
+import com.yarnspace.app.core.theme.settings.ThemeSettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
 
