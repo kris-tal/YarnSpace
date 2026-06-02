@@ -48,7 +48,6 @@ class FeedFragment : Fragment() {
             },
             onReblogClick = { project ->
                 soundManager.play(soundManager.soundReblog)
-                soundManager.play(soundManager.soundReblog)
 
                 viewModel.reblogProject(project)
             },
