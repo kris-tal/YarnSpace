@@ -26,7 +26,6 @@ sealed interface Notif {
         val saverUsername: String
     ) : Notif
 
-
     data class Unknown(
         override val id: Long,
         override val createdAt: Long,

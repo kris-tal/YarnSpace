@@ -35,7 +35,7 @@ import com.yarnspace.app.core.theme.settings.ThemeSettingsRepository
 import com.yarnspace.app.feature.feed.presentation.FeedAdapter
 import com.yarnspace.app.feature.feed.presentation.FeedViewModel
 import com.yarnspace.app.feature.feed.presentation.ProjectDetailsFragment
-import com.yarnspace.app.feature.notifs.domain.NotifsRepository
+import com.yarnspace.app.feature.notifs.data.NotifsRepository
 import com.yarnspace.app.core.theme.AccentColor
 import com.yarnspace.app.core.theme.AccentThemeCoordinator
 import com.yarnspace.app.core.theme.AvatarIcon
@@ -162,7 +162,6 @@ class ProfileFragment : Fragment() {
             resources = resources,
             onLogout = {
                 viewLifecycleOwner.lifecycleScope.launch {
-                    notifsRepository.clearLocalData()
                     val intent = Intent(requireContext(), AuthActivity::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(intent)

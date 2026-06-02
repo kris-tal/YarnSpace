@@ -2,6 +2,8 @@ package com.yarnspace.app.di
 
 import com.yarnspace.app.feature.feed.data.FeedRepository
 import com.yarnspace.app.feature.feed.data.RemoteFeedRepository
+import com.yarnspace.app.feature.notifs.data.RemoteNotifsRepository
+import com.yarnspace.app.feature.notifs.data.NotifsRepository
 import com.yarnspace.app.feature.profile.data.ProfileRepository
 import com.yarnspace.app.feature.profile.data.RemoteProfileRepository
 import com.yarnspace.app.feature.search.data.ProjectSearchRepository
@@ -33,6 +35,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindProfileRepository(impl: RemoteProfileRepository): ProfileRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotifsRepository(impl: RemoteNotifsRepository): NotifsRepository
 }
-
-

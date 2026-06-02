@@ -1,4 +1,4 @@
-package com.yarnspace.app.feature.notifs.data.remote.dto
+package com.yarnspace.app.data.remote.dto
 
 import com.google.gson.annotations.SerializedName
 

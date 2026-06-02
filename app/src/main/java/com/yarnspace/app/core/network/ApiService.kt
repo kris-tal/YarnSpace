@@ -11,7 +11,10 @@ import com.yarnspace.app.data.remote.dto.ProjectReadDto
 import com.yarnspace.app.data.remote.dto.UserPublicDto
 import com.yarnspace.app.data.remote.dto.UserPrivateDto
 import com.yarnspace.app.data.remote.dto.ImageUploadResponseDto
+import com.yarnspace.app.data.remote.dto.NotifDto
+import com.yarnspace.app.data.remote.dto.UnreadNotifsCountDto
 import okhttp3.MultipartBody
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.Field
@@ -112,4 +115,16 @@ interface ApiService {
 
     @GET("feed/")
     suspend fun getGlobalFeed(@Query("limit") limit: Int = 50): List<com.google.gson.JsonElement>
+
+    @GET("notifs/unread-count")
+    suspend fun getUnreadCount(): UnreadNotifsCountDto
+
+    @GET("notifs/")
+    suspend fun listMyNotifications(
+        @Query("limit") limit: Int = 50,
+        @Query("offset") offset: Int = 0,
+    ): List<NotifDto>
+
+    @POST("notifs/mark-all-read")
+    suspend fun markAllRead(): Response<Unit>
 }

@@ -65,6 +65,6 @@ class NotifsFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.sync()
+        viewModel.loadNotifications()
     }
 }
